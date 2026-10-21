@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/zyncro/:path*",
+      "destination": "https://api.datistics.mx/api/zyncro/:path*"
+    },
+    {
+      "source": "/((?!assets/|favicon\\.svg).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
