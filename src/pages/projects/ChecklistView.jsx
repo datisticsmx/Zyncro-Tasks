@@ -6,52 +6,13 @@ import { useCreateGroup, useDeleteGroup, useTaskGroups, useUpdateGroup } from '.
 import { TASK_STATUS_COLOR } from '../../lib/ui'
 import { AssigneeStack, DueBadge, PriorityPill } from '../../components/TaskCard'
 import { TaskDoneCheck } from '../../components/TaskCheck'
+import { QuickAddTask } from '../../components/QuickAddTask'
 import { EmptyState, ErrorState, Skeleton } from '../../components/States'
 import { useToast } from '../../components/Toast'
 import { t } from '../../i18n/es'
 
 /** Id del grupo "Sin grupo": no es una fila, es la ausencia de grupo. */
 const SIN_GRUPO = '__none__'
-
-/** Alta rápida de tarea dentro de un grupo (o en "Sin grupo"). */
-function QuickAdd({ groupId, onCreate }) {
-  const [open, setOpen] = useState(false)
-  const [title, setTitle] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  async function submit(e) {
-    e.preventDefault()
-    if (!title.trim()) return
-    setBusy(true)
-    const ok = await onCreate({ title: title.trim(), group_id: groupId })
-    setBusy(false)
-    if (ok) setTitle('')
-  }
-
-  if (!open) {
-    return (
-      <button type="button" className="quick-add-btn" onClick={() => setOpen(true)}>
-        <Plus size={16} /> {t.checklist.addTask}
-      </button>
-    )
-  }
-  return (
-    <form className="quick-add" onSubmit={submit}>
-      <input
-        className="input"
-        autoFocus
-        maxLength={200}
-        placeholder={t.tasks.newTaskPlaceholder}
-        aria-label={t.checklist.addTask}
-        value={title}
-        disabled={busy}
-        onChange={(e) => setTitle(e.target.value)}
-        onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-        onBlur={() => !title && setOpen(false)}
-      />
-    </form>
-  )
-}
 
 /** Menú del grupo: renombrar, reordenar y eliminar. */
 function GroupMenu({ group, canMoveUp, canMoveDown, onRename, onMove, onDelete }) {
@@ -272,7 +233,12 @@ function GroupSection({ group, tasks, groups, index, total, hideDone, actions })
           ))}
         </ul>
       )}
-      <QuickAdd groupId={esSinGrupo ? null : group.id} onCreate={actions.onCreate} />
+      <QuickAddTask
+        extra={{ group_id: esSinGrupo ? null : group.id }}
+        onCreate={actions.onCreate}
+        label={t.checklist.addTask}
+        ariaLabel={`${t.checklist.addTask}: ${group.name}`}
+      />
     </section>
   )
 }

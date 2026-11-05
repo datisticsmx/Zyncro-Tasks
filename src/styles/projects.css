@@ -688,3 +688,94 @@
     display: none;
   }
 }
+
+/* Tareas dentro del resumen del proyecto (debajo de "Tareas por estatus") */
+.project-tasks {
+  margin-top: 18px;
+}
+.project-tasks-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.project-tasks-head h3 {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.project-tasks-head .muted {
+  font-size: 13px;
+  font-weight: 500;
+}
+.project-tasks .segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* La barra de filtros y el tablero ya traen su propio espaciado. */
+.project-tasks .toolbar {
+  margin-bottom: 14px;
+}
+
+/* ── Personas: directorio del equipo (/people) ─────────────────────── */
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+}
+.person-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 26px 18px 22px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  text-align: center;
+  transition: box-shadow 0.15s ease;
+}
+.person-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+.person-card.is-me {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.person-card .avatar {
+  border-width: 3px;
+  box-shadow: 0 2px 10px rgba(18, 18, 18, 0.08);
+}
+.person-name {
+  font-size: 16px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.person-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+a.person-github:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.person-github.dim {
+  color: var(--text-3);
+}
+.person-me {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--text-on-dark);
+  font-size: 11px;
+  font-weight: 600;
+}

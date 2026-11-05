@@ -10,6 +10,7 @@ import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { ProjectPage } from './pages/projects/ProjectPage'
 import { ProjectFormPage } from './pages/projects/ProjectFormPage'
 import { ProjectWorkspace } from './pages/projects/ProjectWorkspace'
+import { PeoplePage } from './pages/PeoplePage'
 import { ProfilePage } from './pages/ProfilePage'
 import { AdminUsersPage } from './pages/AdminUsersPage'
 
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
           { path: '/projects/:key/list', element: <ProjectWorkspace view="list" /> },
           { path: '/projects/:key/checklist', element: <ProjectWorkspace view="checklist" /> },
           { path: '/projects/:key/tasks/:number', element: <ProjectWorkspace /> },
+          { path: '/people', element: <PeoplePage /> },
           { path: '/profile', element: <ProfilePage /> },
           {
             element: <RequireAdmin />,

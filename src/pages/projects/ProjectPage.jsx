@@ -7,6 +7,7 @@ import {
   FolderGit2,
   Globe,
   KanbanSquare,
+  Layers,
   List,
   Lock,
   Rocket,
@@ -17,6 +18,9 @@ import { useProject } from '../../lib/projects'
 import { PROJECT_STATUS_COLOR, TASK_STATUS_COLOR, formatDate } from '../../lib/ui'
 import { Avatar } from '../../components/Avatar'
 import { DateBadge } from '../../components/TaskCard'
+import { BoardView } from './BoardView'
+import { ListView } from './ListView'
+import { ChecklistView } from './ChecklistView'
 import { Markdown } from '../../components/Markdown'
 import { ErrorState, NotFound, Skeleton } from '../../components/States'
 import { Comments } from '../../components/Comments'
@@ -53,6 +57,39 @@ function LinkRow({ icon: Icon, label, href }) {
         <span className="info-value dim">—</span>
       )}
     </div>
+  )
+}
+
+/**
+ * Tareas del proyecto dentro del resumen, debajo de "Tareas por estatus":
+ * se ven sin tener que entrar a otra pantalla y se alterna entre lista y
+ * tablero en el mismo lugar. Reutiliza las mismas vistas que /list y /board,
+ * así que filtros, drag & drop y casillas se comportan igual.
+ */
+function TasksSection({ p }) {
+  const [view, setView] = useState('list')
+  return (
+    <section className="card outlined project-tasks">
+      <div className="project-tasks-head">
+        <h3>
+          {t.projects.tasksTitle} <span className="muted">{t.projects.tasks(p.stats.total)}</span>
+        </h3>
+        <div className="segmented" role="group" aria-label={t.projects.tasksTitle}>
+          <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>
+            <List size={14} /> {t.tasks.list}
+          </button>
+          <button type="button" aria-pressed={view === 'board'} onClick={() => setView('board')}>
+            <KanbanSquare size={14} /> {t.tasks.board}
+          </button>
+          <button type="button" aria-pressed={view === 'checklist'} onClick={() => setView('checklist')}>
+            <Layers size={14} /> {t.checklist.title}
+          </button>
+        </div>
+      </div>
+      {view === 'list' && <ListView project={p} />}
+      {view === 'board' && <BoardView project={p} />}
+      {view === 'checklist' && <ChecklistView project={p} />}
+    </section>
   )
 }
 
@@ -183,12 +220,6 @@ export function ProjectPage() {
           <p className="muted">{p.clientName || t.projects.noClient}</p>
         </div>
         <div className="head-actions">
-          <Link className="btn btn-yellow" to={`/projects/${p.key}/board`}>
-            <KanbanSquare size={18} /> {t.projects.board}
-          </Link>
-          <Link className="btn btn-ghost" to={`/projects/${p.key}/list`}>
-            <List size={18} /> {t.projects.list}
-          </Link>
           {p.permissions.canEdit && (
             <Link className="btn btn-dark" to={`/projects/${p.key}/settings`}>
               <Settings size={18} /> {t.projects.settings}
@@ -213,7 +244,12 @@ export function ProjectPage() {
       </div>
 
       <div role="tabpanel" style={{ marginTop: 22 }}>
-        {tab === 'summary' && <Summary p={p} />}
+        {tab === 'summary' && (
+          <>
+            <Summary p={p} />
+            <TasksSection p={p} />
+          </>
+        )}
         {tab === 'comments' && <Comments scope="projects" id={p.id} onActivity={refreshActivity} />}
         {tab === 'attachments' && <Attachments scope="projects" id={p.id} onActivity={refreshActivity} />}
         {tab === 'activity' && <ActivityFeed scope="projects" id={p.id} />}

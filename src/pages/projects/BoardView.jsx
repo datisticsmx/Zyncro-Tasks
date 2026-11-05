@@ -12,10 +12,11 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { MoreHorizontal, Plus } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import { STATUSES, useBoard, useCreateTask, useMoveTask, useToggleDone } from '../../lib/tasks'
 import { TASK_STATUS_COLOR } from '../../lib/ui'
 import { TaskCardBody } from '../../components/TaskCard'
+import { QuickAddTask } from '../../components/QuickAddTask'
 import { ErrorState, Skeleton } from '../../components/States'
 import { useToast } from '../../components/Toast'
 import { t } from '../../i18n/es'
@@ -99,45 +100,6 @@ const SortableCard = memo(function SortableCard({ task, onOpen, onMove, onToggle
   )
 })
 
-function QuickAdd({ status, onCreate }) {
-  const [open, setOpen] = useState(false)
-  const [title, setTitle] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  async function submit(e) {
-    e.preventDefault()
-    if (!title.trim()) return
-    setBusy(true)
-    const ok = await onCreate({ title: title.trim(), status })
-    setBusy(false)
-    if (ok) setTitle('')
-  }
-
-  if (!open) {
-    return (
-      <button type="button" className="quick-add-btn" onClick={() => setOpen(true)}>
-        <Plus size={16} /> {t.tasks.addTask}
-      </button>
-    )
-  }
-  return (
-    <form className="quick-add" onSubmit={submit}>
-      <input
-        className="input"
-        autoFocus
-        maxLength={200}
-        placeholder={t.tasks.newTaskPlaceholder}
-        aria-label={`${t.tasks.addTask}: ${t.taskStatus[status]}`}
-        value={title}
-        disabled={busy}
-        onChange={(e) => setTitle(e.target.value)}
-        onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-        onBlur={() => !title && setOpen(false)}
-      />
-    </form>
-  )
-}
-
 function Column({ status, ids, byId, onOpen, onMove, onCreate, onToggle }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   return (
@@ -148,7 +110,11 @@ function Column({ status, ids, byId, onOpen, onMove, onCreate, onToggle }) {
         </span>
         <span className="count">{ids.length}</span>
       </header>
-      <QuickAdd status={status} onCreate={onCreate} />
+      <QuickAddTask
+        extra={{ status }}
+        onCreate={onCreate}
+        ariaLabel={`${t.tasks.addTask}: ${t.taskStatus[status]}`}
+      />
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <ul className="board-list" ref={setNodeRef}>
           {ids.map((id) => (

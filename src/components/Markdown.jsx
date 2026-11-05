@@ -1,28 +1,18 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-
-/**
- * Convierte cualquier HTML crudo del Markdown en texto literal: un
- * `<script>…</script>` se ve tal cual, escapado, y nunca se interpreta.
- */
-function htmlAsText() {
-  const walk = (node) => {
-    if (node.type === 'html') node.type = 'text'
-    if (node.children) node.children.forEach(walk)
-  }
-  return (tree) => walk(tree)
-}
+import { htmlAsText, softBreaks } from '../lib/markdown'
 
 /**
  * Markdown sanitizado (RNF-SEC-03, CA-11): el HTML crudo se muestra como texto
  * (htmlAsText) y react-markdown neutraliza URLs `javascript:` con su
- * urlTransform por defecto.
+ * urlTransform por defecto. softBreaks va al final —después de htmlAsText—
+ * para que un salto de línea simple se vea como salto, igual que se escribió.
  */
 export function Markdown({ children }) {
   return (
     <div className="markdown">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, htmlAsText]}
+        remarkPlugins={[remarkGfm, htmlAsText, softBreaks]}
         components={{
           // `node` (AST) se separa para no pasarlo como atributo al DOM.
           // eslint-disable-next-line no-unused-vars

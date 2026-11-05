@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { ArrowDown, ArrowUp, ListChecks } from 'lucide-react'
-import { PRIORITIES, STATUSES, useTaskList, useToggleDone } from '../../lib/tasks'
+import { PRIORITIES, STATUSES, useCreateTask, useTaskList, useToggleDone } from '../../lib/tasks'
 import { useTaskGroups } from '../../lib/taskGroups'
 import { TASK_STATUS_COLOR } from '../../lib/ui'
 import { AssigneeStack, DueBadge, PriorityPill } from '../../components/TaskCard'
 import { TaskDoneCheck } from '../../components/TaskCheck'
+import { QuickAddTask } from '../../components/QuickAddTask'
 import { EmptyState, ErrorState, SkeletonRows } from '../../components/States'
 import { useToast } from '../../components/Toast'
 import { t } from '../../i18n/es'
@@ -36,6 +37,19 @@ export function ListView({ project }) {
   const toggleDone = (task, done) => {
     toggle.mutate({ task, done })
     toast.success(done ? t.tasks.doneToast(task.ref) : t.tasks.undoneToast(task.ref, t.taskStatus.todo))
+  }
+
+  // Alta desde la lista: nace en "Por hacer"; el resto se edita en el panel.
+  const create = useCreateTask(project.id, project.key)
+  async function createTask(body) {
+    try {
+      const { task } = await create.mutateAsync(body)
+      toast.success(t.tasks.created(task.ref))
+      return true
+    } catch (err) {
+      toast.error(err.fields ? Object.values(err.fields)[0] : err.message)
+      return false
+    }
   }
 
   const filters = {
@@ -239,6 +253,9 @@ export function ListView({ project }) {
           />
           {t.tasks.onlyOverdue}
         </label>
+        <div className="toolbar-end">
+          <QuickAddTask variant="solid" extra={{ status: 'todo' }} onCreate={createTask} />
+        </div>
       </div>
       {content}
     </div>

@@ -10,6 +10,7 @@ export const es = {
   nav: {
     myTasks: 'Mis tareas',
     projects: 'Proyectos',
+    people: 'Personas',
     users: 'Usuarios',
     profile: 'Mi perfil',
     logout: 'Cerrar sesión',
@@ -93,6 +94,18 @@ export const es = {
     passwordChanged: 'Contraseña actualizada',
   },
 
+  people: {
+    title: 'Personas',
+    subtitle: 'El equipo de Zyncro',
+    count: (n) => `${n} ${n === 1 ? 'persona' : 'personas'}`,
+    search: 'Buscar por nombre…',
+    you: 'Tú',
+    emptyTitle: 'Todavía no hay nadie más',
+    emptyBody: 'Cuando un administrador invite al equipo, sus perfiles aparecerán aquí.',
+    emptySearchTitle: (q) => `Sin resultados para «${q}»`,
+    emptySearchBody: 'Prueba con otro nombre.',
+  },
+
   users: {
     title: 'Usuarios',
     subtitle: 'Invita al equipo y administra roles y accesos.',
@@ -159,8 +172,6 @@ export const es = {
     members: 'Miembros',
     noMembers: 'Sin miembros',
     everyone: 'Todo el equipo',
-    board: 'Tablero',
-    list: 'Lista',
     settings: 'Configuración',
     tabs: { summary: 'Resumen', comments: 'Comentarios', attachments: 'Adjuntos', activity: 'Actividad' },
     description: 'Descripción',
@@ -174,6 +185,7 @@ export const es = {
     end: 'Fin tentativo',
     createdBy: 'Creado por',
     byStatus: 'Tareas por estatus',
+    tasksTitle: 'Tareas',
     // Formulario
     formNew: 'Nuevo proyecto',
     formEdit: 'Configuración del proyecto',

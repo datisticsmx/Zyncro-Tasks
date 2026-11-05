@@ -943,3 +943,31 @@ a.task-card {
     width: 84px;
   }
 }
+
+/* Alta rápida como botón de barra (vista Lista): a la derecha de los filtros */
+.toolbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+.quick-add.solid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.quick-add.solid .input {
+  min-width: 220px;
+  max-width: 320px;
+}
+@media (max-width: 720px) {
+  .toolbar-end {
+    margin-left: 0;
+    width: 100%;
+  }
+  .quick-add-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
