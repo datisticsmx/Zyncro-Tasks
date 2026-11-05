@@ -60,14 +60,77 @@ export function useProjectPeople(projectId) {
   })
 }
 
-/** Tras un cambio en una tarea: refresca tablero, listas, "mis tareas" y conteos del proyecto. */
+/** Tras un cambio en una tarea: refresca tablero, listas, "mis tareas", grupos y conteos. */
 export function invalidateTaskViews(qc, projectKey) {
   qc.invalidateQueries({ queryKey: ['tasks', 'board'] })
   qc.invalidateQueries({ queryKey: ['tasks', 'list'] })
   qc.invalidateQueries({ queryKey: taskKeys.mine })
+  // El progreso de cada grupo depende del estatus de sus tareas.
+  qc.invalidateQueries({ queryKey: ['taskGroups'] })
   qc.invalidateQueries({ queryKey: ['projects', 'list'] })
   qc.invalidateQueries({ queryKey: ['activity'] })
   if (projectKey) qc.invalidateQueries({ queryKey: ['projects', 'detail', projectKey.toUpperCase()] })
+}
+
+/**
+ * Aplica un cambio parcial a una tarea en cualquier caché de tareas, sea su
+ * forma { items: [...] } (tablero y listas), { groups: {...} } ("Mis tareas",
+ * donde lo hecho desaparece) o la tarea suelta del detalle.
+ */
+function applyTaskPatch(data, id, patch) {
+  if (!data || typeof data !== 'object') return data
+  if (Array.isArray(data.items)) {
+    return { ...data, items: data.items.map((x) => (x.id === id ? { ...x, ...patch } : x)) }
+  }
+  if (data.groups && typeof data.groups === 'object') {
+    const groups = Object.fromEntries(
+      Object.entries(data.groups).map(([k, list]) => [
+        k,
+        list.map((x) => (x.id === id ? { ...x, ...patch } : x)).filter((x) => x.status !== 'done'),
+      ]),
+    )
+    return { ...data, groups, total: Object.values(groups).reduce((n, l) => n + l.length, 0) }
+  }
+  if (data.id === id) return { ...data, ...patch }
+  return data
+}
+
+/**
+ * Casilla de "completada": marca Hecho y, al desmarcar, devuelve la tarea a
+ * Por hacer. Es una acción inmediata (no un formulario): se pinta al instante
+ * en todas las vistas y, si la API falla, se revierte.
+ */
+export function useToggleDone(projectKey, { onRollback } = {}) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ task, done }) =>
+      api.patch(`/tasks/${task.id}${qs({ today: localToday() })}`, { status: done ? 'done' : 'todo' }),
+    onMutate: ({ task, done }) => {
+      const snapshot = qc.getQueriesData({ queryKey: taskKeys.all })
+      const patch = {
+        status: done ? 'done' : 'todo',
+        overdue: done ? false : task.overdue,
+        completedAt: done ? new Date().toISOString() : null,
+      }
+      qc.setQueriesData({ queryKey: taskKeys.all }, (data) => applyTaskPatch(data, task.id, patch))
+      return { snapshot }
+    },
+    onError: (err, vars, ctx) => {
+      for (const [key, data] of ctx?.snapshot || []) qc.setQueryData(key, data)
+      onRollback?.(err)
+    },
+    onSettled: () => invalidateTaskViews(qc, projectKey),
+  })
+}
+
+/** Mueve una tarea a otro grupo (o la saca, con `groupId` null). */
+export function useSetTaskGroup(projectKey) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ task, groupId }) =>
+      (await api.patch(`/tasks/${task.id}${qs({ today: localToday() })}`, { group_id: groupId })).task,
+    onSuccess: () => invalidateTaskViews(qc, projectKey),
+  })
 }
 
 export function useCreateTask(projectId, projectKey) {

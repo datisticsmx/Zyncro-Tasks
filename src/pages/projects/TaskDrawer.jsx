@@ -4,9 +4,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Eye, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../../lib/api'
 import { PRIORITIES, STATUSES, invalidateTaskViews, localToday, taskKeys, useProjectPeople, useTask } from '../../lib/tasks'
+import { useTaskGroups } from '../../lib/taskGroups'
 import { TASK_STATUS_COLOR, dueTone } from '../../lib/ui'
 import { Markdown } from '../../components/Markdown'
 import { DateBadge } from '../../components/TaskCard'
+import { TaskCheck } from '../../components/TaskCheck'
 import { UserPicker } from '../../components/UserPicker'
 import { EmptyState, Skeleton } from '../../components/States'
 import { Comments } from '../../components/Comments'
@@ -17,7 +19,10 @@ import { t } from '../../i18n/es'
 
 const DATETIME = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
 
-const FIELDS = ['title', 'description', 'status', 'priority', 'start_date', 'due_date']
+const FIELDS = ['title', 'description', 'status', 'priority', 'start_date', 'due_date', 'group_id']
+
+/** Campos cuyo vacío se manda como null (fechas y grupo). */
+const NULLABLE = ['start_date', 'due_date', 'group_id']
 
 /** Borrador editable a partir de la tarea guardada. */
 function toDraft(task) {
@@ -28,6 +33,7 @@ function toDraft(task) {
     priority: task.priority,
     start_date: task.startDate || '',
     due_date: task.dueDate || '',
+    group_id: task.groupId || '',
     assignees: task.assignees,
   }
 }
@@ -38,7 +44,7 @@ function diffDraft(draft, task) {
   const changes = {}
   for (const k of FIELDS) {
     const a = k === 'title' ? draft[k].trim() : draft[k]
-    if (a !== original[k]) changes[k] = (k === 'start_date' || k === 'due_date') && a === '' ? null : a
+    if (a !== original[k]) changes[k] = NULLABLE.includes(k) && a === '' ? null : a
   }
   const ids = (list) => list.map((u) => u.id).sort().join()
   const assigneesChanged = ids(draft.assignees) !== ids(original.assignees)
@@ -53,6 +59,7 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
   const qc = useQueryClient()
   const toast = useToast()
   const people = useProjectPeople(project.id)
+  const groups = useTaskGroups(project.id)
   const [draft, setDraft] = useState(() => toDraft(task))
   const [editingDesc, setEditingDesc] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -127,7 +134,13 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
   return (
     <>
       <div className="drawer-content">
-        <div className="field">
+        <div className="field drawer-title-row">
+          <TaskCheck
+            checked={draft.status === 'done'}
+            label={t.tasks.toggleDone(task.ref)}
+            size={24}
+            onChange={(done) => setDraft((d) => ({ ...d, status: done ? 'done' : 'todo' }))}
+          />
           <textarea
             className="drawer-title"
             aria-label={t.tasks.title}
@@ -151,6 +164,23 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
                 </option>
               ))}
             </select>
+          </label>
+          <label className="drawer-field">
+            <span>{t.tasks.group}</span>
+            <select
+              className="select"
+              value={draft.group_id}
+              onChange={set('group_id')}
+              aria-invalid={fieldErrors.group_id ? 'true' : undefined}
+            >
+              <option value="">{t.tasks.noGroup}</option>
+              {(groups.data || []).map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.group_id && <span className="field-error">{fieldErrors.group_id}</span>}
           </label>
           <label className="drawer-field">
             <span>{t.tasks.priority}</span>

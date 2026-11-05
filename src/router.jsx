@@ -39,6 +39,7 @@ export const router = createBrowserRouter([
           { path: '/projects/:key/settings', element: <ProjectFormPage /> },
           { path: '/projects/:key/board', element: <ProjectWorkspace view="board" /> },
           { path: '/projects/:key/list', element: <ProjectWorkspace view="list" /> },
+          { path: '/projects/:key/checklist', element: <ProjectWorkspace view="checklist" /> },
           { path: '/projects/:key/tasks/:number', element: <ProjectWorkspace /> },
           { path: '/profile', element: <ProfilePage /> },
           {

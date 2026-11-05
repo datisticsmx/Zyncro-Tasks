@@ -1,5 +1,6 @@
-import { CalendarClock, CornerDownRight } from 'lucide-react'
+import { CalendarClock, CornerDownRight, Layers } from 'lucide-react'
 import { Avatar } from './Avatar'
+import { TaskDoneCheck } from './TaskCheck'
 import { PRIORITY_COLOR, dueTone, formatDate } from '../lib/ui'
 import { t } from '../i18n/es'
 
@@ -49,15 +50,25 @@ export function AssigneeStack({ users, size = 26, max = 3 }) {
   )
 }
 
-/** Contenido de una tarjeta (tablero y "Mis tareas"). */
-export function TaskCardBody({ task, showProject = false }) {
+/**
+ * Contenido de una tarjeta (tablero y "Mis tareas"). Con `onToggle` muestra la
+ * casilla para completarla sin abrir el panel.
+ */
+export function TaskCardBody({ task, showProject = false, onToggle }) {
+  const done = task.status === 'done'
   return (
     <>
       <div className="task-card-top">
+        {onToggle && <TaskDoneCheck task={task} onToggle={onToggle} size={18} />}
         <span className="pill dark ref">{task.ref}</span>
         <PriorityPill priority={task.priority} />
       </div>
-      <p className="task-card-title">{task.title}</p>
+      <p className={`task-card-title${done ? ' is-done' : ''}`}>{task.title}</p>
+      {task.groupName && (
+        <span className="task-card-project">
+          <Layers size={12} aria-hidden="true" /> {task.groupName}
+        </span>
+      )}
       {showProject && (
         <span className="task-card-project">
           <CornerDownRight size={12} aria-hidden="true" /> {task.projectName}

@@ -22,6 +22,7 @@ import { ErrorState, NotFound, Skeleton } from '../../components/States'
 import { Comments } from '../../components/Comments'
 import { Attachments } from '../../components/Attachments'
 import { ActivityFeed } from '../../components/ActivityFeed'
+import { ProjectKeyPill } from '../../components/ProjectKeyPill'
 import { t } from '../../i18n/es'
 
 const TABS = [{ id: 'summary' }, { id: 'comments' }, { id: 'attachments' }, { id: 'activity' }]
@@ -172,7 +173,7 @@ export function ProjectPage() {
       <div className="page-head">
         <div>
           <div className="pill-row">
-            <span className="pill dark">{p.key}</span>
+            <ProjectKeyPill project={p} />
             <span className={`pill ${PROJECT_STATUS_COLOR[p.status]}`}>{t.projectStatus[p.status]}</span>
             <span className="pill">
               {p.visibility === 'global' ? <Globe size={12} /> : <Lock size={12} />} {t.visibility[p.visibility]}

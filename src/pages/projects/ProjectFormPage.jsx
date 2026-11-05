@@ -1,10 +1,11 @@
 import { useEffect, useId, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { Archive, ArrowLeft, Globe, Lock, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { Archive, ArrowLeft, Check, Globe, Lock, Palette, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { api, ApiError } from '../../lib/api'
 import { projectKeys, useClientNames, useProject } from '../../lib/projects'
 import { useMe } from '../../lib/session'
+import { DEFAULT_PROJECT_COLOR, PROJECT_COLORS, isDarkColor, projectColor } from '../../lib/projectColor'
 import { Field, FormError } from '../../components/Field'
 import { UserPicker } from '../../components/UserPicker'
 import { ErrorState, NoAccess, NotFound, SkeletonRows } from '../../components/States'
@@ -22,6 +23,7 @@ const FIELDS = [
   'start_date',
   'end_date_tentative',
   'visibility',
+  'color',
 ]
 
 function toForm(p) {
@@ -37,6 +39,7 @@ function toForm(p) {
       start_date: '',
       end_date_tentative: '',
       visibility: 'private',
+      color: DEFAULT_PROJECT_COLOR,
       members: [],
       repos: [],
     }
@@ -52,6 +55,7 @@ function toForm(p) {
     start_date: p.startDate || '',
     end_date_tentative: p.endDateTentative || '',
     visibility: p.visibility,
+    color: p.color || '',
     members: p.members,
     repos: p.repositories.map((r) => ({ ...r })),
   }
@@ -88,6 +92,56 @@ function ClientField({ value, onChange, error }) {
         ))}
       </datalist>
     </>
+  )
+}
+
+/** Color identificador: presets de la paleta o uno personalizado. '' = sin color propio. */
+function ColorField({ value, onChange, status, error }) {
+  const isPreset = PROJECT_COLORS.some((c) => c.hex === value)
+  const isCustom = Boolean(value) && !isPreset
+  const preview = projectColor({ color: value || null, status })
+  const ink = isDarkColor(preview) ? 'var(--text-on-dark)' : 'var(--ink)'
+  return (
+    <div className="field">
+      <span className="field-label">{t.projects.color}</span>
+      <div className="color-picker">
+        <div className="color-swatches" role="radiogroup" aria-label={t.projects.color}>
+          {PROJECT_COLORS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              role="radio"
+              aria-checked={value === c.hex}
+              aria-label={t.projects.colorPreset(c.label)}
+              title={c.label}
+              className="color-swatch"
+              style={{ background: c.hex }}
+              onClick={() => onChange(c.hex)}
+            >
+              {value === c.hex && <Check size={16} />}
+            </button>
+          ))}
+          <label
+            className={`color-swatch custom ${isCustom ? 'selected' : ''}`}
+            title={t.projects.colorCustom}
+            style={isCustom ? { background: value, color: ink } : undefined}
+          >
+            {isCustom ? <Check size={16} /> : <Palette size={16} />}
+            <input
+              type="color"
+              aria-label={t.projects.colorCustom}
+              value={value || DEFAULT_PROJECT_COLOR}
+              onChange={(e) => onChange(e.target.value.toLowerCase())}
+            />
+          </label>
+        </div>
+        <span className="color-preview" style={{ background: preview, color: ink }}>
+          {value ? value.toUpperCase() : t.projects.colorNone}
+        </span>
+      </div>
+      <span className="field-hint">{t.projects.colorHint}</span>
+      {error && <span className="field-error">{error}</span>}
+    </div>
   )
 }
 
@@ -246,6 +300,12 @@ function ProjectForm({ project }) {
           hint={t.projects.descriptionHint}
           error={fieldErrors.description}
           className="input textarea"
+        />
+        <ColorField
+          value={form.color}
+          status={form.status}
+          onChange={(color) => setForm((f) => ({ ...f, color }))}
+          error={fieldErrors.color}
         />
       </section>
 

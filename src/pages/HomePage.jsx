@@ -1,9 +1,10 @@
 import { Link } from 'react-router'
 import { CalendarCheck, CalendarClock, CalendarDays, CalendarX2, CheckSquare } from 'lucide-react'
 import { useMe } from '../lib/session'
-import { useMyTasks } from '../lib/tasks'
+import { useMyTasks, useToggleDone } from '../lib/tasks'
 import { TaskCardBody } from '../components/TaskCard'
 import { EmptyState, ErrorState, Skeleton } from '../components/States'
+import { useToast } from '../components/Toast'
 import { t } from '../i18n/es'
 
 const DATE_FMT = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -19,6 +20,13 @@ const GROUPS = [
 export function HomePage() {
   const { data: user } = useMe()
   const mine = useMyTasks()
+  const toast = useToast()
+  const toggle = useToggleDone(null, { onRollback: () => toast.error(t.tasks.toggleFailed) })
+  // Al completarla desaparece de aquí: esta vista solo lista tareas abiertas.
+  const toggleDone = (task, done) => {
+    toggle.mutate({ task, done })
+    toast.success(t.tasks.doneToast(task.ref))
+  }
   const fecha = DATE_FMT.format(new Date())
   const hoy = fecha.charAt(0).toUpperCase() + fecha.slice(1)
 
@@ -57,7 +65,7 @@ export function HomePage() {
                         to={`/projects/${task.projectKey}/tasks/${task.number}`}
                         state={{ from: '/' }}
                       >
-                        <TaskCardBody task={task} showProject />
+                        <TaskCardBody task={task} showProject onToggle={toggleDone} />
                       </Link>
                     </li>
                   ))}

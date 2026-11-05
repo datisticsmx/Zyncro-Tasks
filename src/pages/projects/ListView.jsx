@@ -1,19 +1,25 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { ArrowDown, ArrowUp, ListChecks } from 'lucide-react'
-import { PRIORITIES, STATUSES, useTaskList } from '../../lib/tasks'
+import { PRIORITIES, STATUSES, useTaskList, useToggleDone } from '../../lib/tasks'
+import { useTaskGroups } from '../../lib/taskGroups'
 import { TASK_STATUS_COLOR } from '../../lib/ui'
 import { AssigneeStack, DueBadge, PriorityPill } from '../../components/TaskCard'
+import { TaskDoneCheck } from '../../components/TaskCheck'
 import { EmptyState, ErrorState, SkeletonRows } from '../../components/States'
+import { useToast } from '../../components/Toast'
 import { t } from '../../i18n/es'
 
 const PAGE_SIZE = 50
 
 const COLUMNS = [
+  // Primera columna: la casilla para completar sin abrir la tarea.
+  { id: 'done', label: t.tasks.markDone, headerHidden: true },
   { id: 'number', label: t.tasks.colRef, sortable: true },
   { id: 'title', label: t.tasks.colTitle },
   { id: 'status', label: t.tasks.colStatus, sortable: true },
   { id: 'priority', label: t.tasks.colPriority, sortable: true },
+  { id: 'group', label: t.tasks.colGroup },
   { id: 'assignees', label: t.tasks.colAssignees },
   { id: 'due_date', label: t.tasks.colDue, sortable: true },
 ]
@@ -23,12 +29,20 @@ export function ListView({ project }) {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const toast = useToast()
   const [q, setQ] = useState(params.get('q') || '')
+  const groups = useTaskGroups(project.id)
+  const toggle = useToggleDone(project.key, { onRollback: () => toast.error(t.tasks.toggleFailed) })
+  const toggleDone = (task, done) => {
+    toggle.mutate({ task, done })
+    toast.success(done ? t.tasks.doneToast(task.ref) : t.tasks.undoneToast(task.ref, t.taskStatus.todo))
+  }
 
   const filters = {
     status: params.get('status') || '',
     priority: params.get('priority') || '',
     assignee: params.get('assignee') || '',
+    group: params.get('group') || '',
     overdue: params.get('overdue') || '',
     q: params.get('q') || '',
     sort: params.get('sort') || 'due_date',
@@ -85,11 +99,14 @@ export function ListView({ project }) {
                   <th
                     key={c.id}
                     scope="col"
+                    className={c.headerHidden ? 'th-check' : undefined}
                     aria-sort={
                       filters.sort === c.id ? (filters.dir === 'asc' ? 'ascending' : 'descending') : undefined
                     }
                   >
-                    {c.sortable ? (
+                    {c.headerHidden ? (
+                      <span className="sr-only">{c.label}</span>
+                    ) : c.sortable ? (
                       <button type="button" className="th-sort" onClick={() => toggleSort(c.id)} aria-label={t.tasks.sortBy(c.label)}>
                         {c.label}
                         {filters.sort === c.id &&
@@ -105,11 +122,18 @@ export function ListView({ project }) {
             <tbody>
               {list.data.items.map((task) => (
                 <tr key={task.id} className="row-link" onClick={() => open(task)}>
+                  <td className="td-check">
+                    <TaskDoneCheck task={task} onToggle={toggleDone} size={18} />
+                  </td>
                   <td>
                     <span className="pill dark ref">{task.ref}</span>
                   </td>
                   <td className="title-cell">
-                    <button type="button" className="row-title" onClick={() => open(task)}>
+                    <button
+                      type="button"
+                      className={`row-title${task.status === 'done' ? ' is-done' : ''}`}
+                      onClick={() => open(task)}
+                    >
                       {task.title}
                     </button>
                   </td>
@@ -120,6 +144,9 @@ export function ListView({ project }) {
                   </td>
                   <td>
                     <PriorityPill priority={task.priority} />
+                  </td>
+                  <td>
+                    {task.groupName ? <span className="pill">{task.groupName}</span> : <span className="muted">—</span>}
                   </td>
                   <td>
                     <AssigneeStack users={task.assignees} />
@@ -189,6 +216,20 @@ export function ListView({ project }) {
           <option value="">{t.tasks.anyAssignee}</option>
           <option value="me">{t.tasks.assignedToMe}</option>
           <option value="none">{t.tasks.unassigned}</option>
+        </select>
+        <select
+          className="select"
+          aria-label={t.tasks.colGroup}
+          value={filters.group}
+          onChange={(e) => setParam('group', e.target.value)}
+        >
+          <option value="">{t.tasks.allGroups}</option>
+          <option value="none">{t.tasks.noGroup}</option>
+          {(groups.data || []).map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
         </select>
         <label className="check">
           <input

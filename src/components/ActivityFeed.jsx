@@ -3,6 +3,7 @@ import { useActivity } from '../lib/collab'
 import { formatDate } from '../lib/ui'
 import { Avatar } from './Avatar'
 import { EmptyState, ErrorState, SkeletonRows } from './States'
+import { colorLabel } from '../lib/projectColor'
 import { t } from '../i18n/es'
 
 const DATETIME = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
@@ -13,6 +14,7 @@ function show(field, value) {
   if (field === 'status') return t.taskStatus[value] || t.projectStatus[value] || value
   if (field === 'priority') return t.priority[value] || value
   if (field === 'visibility') return t.visibility[value] || value
+  if (field === 'color') return colorLabel(value)
   if (/date/.test(field)) return formatDate(value)
   return String(value)
 }
@@ -53,6 +55,18 @@ function describe(item, users, inTask) {
           movió {ref || 'la tarea'} de <strong>{show('status', p.from)}</strong> a <strong>{show('status', p.to)}</strong>
         </>
       )
+    case 'task.group_changed':
+      return p.to ? (
+        <>movió {ref || 'la tarea'} al grupo <strong>{p.to}</strong></>
+      ) : (
+        <>sacó {ref || 'la tarea'} del grupo <strong>{p.from}</strong></>
+      )
+    case 'group.created':
+      return <>creó el grupo <strong>{p.name}</strong></>
+    case 'group.renamed':
+      return <>renombró el grupo <strong>{p.from}</strong> a <strong>{p.to}</strong></>
+    case 'group.deleted':
+      return <>eliminó el grupo <strong>{p.name}</strong></>
     case 'task.assigned':
       return <>asignó {ref ? <>{ref} </> : null}a {who(p.user_id)}</>
     case 'task.unassigned':

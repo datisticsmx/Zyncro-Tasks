@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate, useParams } from 'react-router'
-import { Globe, KanbanSquare, LayoutDashboard, List, Lock, Settings, Trash2 } from 'lucide-react'
+import { Globe, KanbanSquare, Layers, LayoutDashboard, List, Lock, Settings, Trash2 } from 'lucide-react'
 import { useProject } from '../../lib/projects'
 import { useMe } from '../../lib/session'
 import { TrashModal } from '../../components/TrashModal'
@@ -8,11 +8,14 @@ import { PROJECT_STATUS_COLOR } from '../../lib/ui'
 import { ErrorState, NotFound, Skeleton } from '../../components/States'
 import { BoardView } from './BoardView'
 import { ListView } from './ListView'
+import { ChecklistView } from './ChecklistView'
 import { TaskDrawer } from './TaskDrawer'
+import { ProjectKeyPill } from '../../components/ProjectKeyPill'
 import { t } from '../../i18n/es'
 
 /**
- * /projects/:key/board, /projects/:key/list y /projects/:key/tasks/:number.
+ * /projects/:key/board, /projects/:key/list, /projects/:key/checklist y
+ * /projects/:key/tasks/:number.
  * El detalle de tarea es un panel sobre el tablero (o la lista, si se abrió
  * desde ahí) con URL propia.
  */
@@ -54,7 +57,7 @@ export function ProjectWorkspace({ view: routeView }) {
       <div className="page-head">
         <div>
           <div className="pill-row">
-            <span className="pill dark">{p.key}</span>
+            <ProjectKeyPill project={p} />
             <span className={`pill ${PROJECT_STATUS_COLOR[p.status]}`}>{t.projectStatus[p.status]}</span>
             <span className="pill">
               {p.visibility === 'global' ? <Globe size={12} /> : <Lock size={12} />} {t.visibility[p.visibility]}
@@ -72,6 +75,9 @@ export function ProjectWorkspace({ view: routeView }) {
             </NavLink>
             <NavLink to={`/projects/${p.key}/list`} aria-current={view === 'list' ? 'page' : undefined}>
               <List size={14} /> {t.tasks.list}
+            </NavLink>
+            <NavLink to={`/projects/${p.key}/checklist`} aria-current={view === 'checklist' ? 'page' : undefined}>
+              <Layers size={14} /> {t.checklist.title}
             </NavLink>
           </nav>
           {me.role === 'admin' && (
@@ -93,7 +99,9 @@ export function ProjectWorkspace({ view: routeView }) {
         </div>
       </div>
 
-      {view === 'list' ? <ListView project={p} /> : <BoardView project={p} />}
+      {view === 'list' && <ListView project={p} />}
+      {view === 'checklist' && <ChecklistView project={p} />}
+      {view !== 'list' && view !== 'checklist' && <BoardView project={p} />}
 
       {trashOpen && <TrashModal project={p} onClose={() => setTrashOpen(false)} />}
       {number && <TaskDrawer key={number} project={p} number={number} onClose={closeDrawer} />}

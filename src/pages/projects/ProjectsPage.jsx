@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { ArrowUpRight, FolderKanban, Globe, Lock, Plus } from 'lucide-react'
 import { useProjects } from '../../lib/projects'
-import { PROJECT_STATUS_COLOR, formatDate } from '../../lib/ui'
+import { formatDate } from '../../lib/ui'
+import { isDarkColor, projectColor } from '../../lib/projectColor'
 import { Avatar } from '../../components/Avatar'
 import { DateBadge } from '../../components/TaskCard'
 import { EmptyState, ErrorState, Skeleton } from '../../components/States'
@@ -12,9 +13,10 @@ import { t } from '../../i18n/es'
 const FINISHED = ['completed', 'archived']
 
 function ProjectCard({ p }) {
-  const color = PROJECT_STATUS_COLOR[p.status]
+  const color = projectColor(p)
+  const classes = ['project-card', isDarkColor(color) && 'on-dark', p.status === 'archived' && 'is-archived']
   return (
-    <Link to={`/projects/${p.key}`} className={`project-card bg-${color}`}>
+    <Link to={`/projects/${p.key}`} className={classes.filter(Boolean).join(' ')} style={{ background: color }}>
       <div className="project-card-top">
         <span className="pill dark">{p.key}</span>
         <span className="pill light">

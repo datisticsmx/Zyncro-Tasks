@@ -13,7 +13,7 @@ import {
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { MoreHorizontal, Plus } from 'lucide-react'
-import { STATUSES, useBoard, useCreateTask, useMoveTask } from '../../lib/tasks'
+import { STATUSES, useBoard, useCreateTask, useMoveTask, useToggleDone } from '../../lib/tasks'
 import { TASK_STATUS_COLOR } from '../../lib/ui'
 import { TaskCardBody } from '../../components/TaskCard'
 import { ErrorState, Skeleton } from '../../components/States'
@@ -77,7 +77,7 @@ function MoveMenu({ task, onMove }) {
   )
 }
 
-const SortableCard = memo(function SortableCard({ task, onOpen, onMove }) {
+const SortableCard = memo(function SortableCard({ task, onOpen, onMove, onToggle }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
   return (
     <li
@@ -93,7 +93,7 @@ const SortableCard = memo(function SortableCard({ task, onOpen, onMove }) {
         if (e.key === 'Enter' && !e.defaultPrevented) onOpen(task)
       }}
     >
-      <TaskCardBody task={task} />
+      <TaskCardBody task={task} onToggle={onToggle} />
       <MoveMenu task={task} onMove={onMove} />
     </li>
   )
@@ -138,7 +138,7 @@ function QuickAdd({ status, onCreate }) {
   )
 }
 
-function Column({ status, ids, byId, onOpen, onMove, onCreate }) {
+function Column({ status, ids, byId, onOpen, onMove, onCreate, onToggle }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   return (
     <section className={`board-col${isOver ? ' over' : ''}`} aria-label={t.taskStatus[status]}>
@@ -152,7 +152,7 @@ function Column({ status, ids, byId, onOpen, onMove, onCreate }) {
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <ul className="board-list" ref={setNodeRef}>
           {ids.map((id) => (
-            <SortableCard key={id} task={byId[id]} onOpen={onOpen} onMove={onMove} />
+            <SortableCard key={id} task={byId[id]} onOpen={onOpen} onMove={onMove} onToggle={onToggle} />
           ))}
           {ids.length === 0 && <li className="board-empty">{t.tasks.emptyColumn}</li>}
         </ul>
@@ -169,6 +169,7 @@ export function BoardView({ project }) {
   const board = useBoard(project.id)
   const move = useMoveTask(project.id, project.key, { onRollback: () => toast.error(t.tasks.moveFailed) })
   const create = useCreateTask(project.id, project.key)
+  const toggle = useToggleDone(project.key, { onRollback: () => toast.error(t.tasks.toggleFailed) })
 
   // Columnas durante el arrastre; fuera de él se derivan de la caché.
   const [dragCols, setDragCols] = useState(null)
@@ -187,6 +188,12 @@ export function BoardView({ project }) {
 
   const openTask = (task) =>
     navigate(`/projects/${project.key}/tasks/${task.number}`, { state: { from: location.pathname + location.search } })
+
+  /** Casilla de la tarjeta: Hecho ⇄ Por hacer sin abrir el panel. */
+  function toggleDone(task, done) {
+    toggle.mutate({ task, done })
+    toast.success(done ? t.tasks.doneToast(task.ref) : t.tasks.undoneToast(task.ref, t.taskStatus.todo))
+  }
 
   function moveTo(task, status) {
     move.mutate({ task, status })
@@ -296,6 +303,7 @@ export function BoardView({ project }) {
             onOpen={openTask}
             onMove={moveTo}
             onCreate={createTask}
+            onToggle={toggleDone}
           />
         ))}
       </div>

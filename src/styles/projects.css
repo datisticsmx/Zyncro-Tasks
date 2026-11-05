@@ -76,6 +76,8 @@
   box-shadow: var(--shadow-sm);
 }
 .project-card h3 {
+  /* Sigue el color de texto de la tarjeta (claro sobre fondos oscuros). */
+  color: inherit;
   font-size: 21px;
   margin-bottom: 2px;
 }
@@ -115,6 +117,96 @@
 .avatar.more {
   background: var(--ink);
   color: var(--text-on-dark);
+}
+/* Color propio del proyecto: con fondos oscuros el texto va claro. */
+.project-card.on-dark {
+  color: var(--text-on-dark);
+}
+.project-card.on-dark .arrow {
+  border-color: var(--text-on-dark);
+}
+.project-card.on-dark .pill.dark {
+  background: var(--text-on-dark);
+  color: var(--ink);
+}
+.project-card.on-dark .pill.light {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-on-dark);
+}
+.project-card.on-dark .progress-track {
+  background: rgba(255, 255, 255, 0.25);
+}
+.project-card.on-dark .progress-track span {
+  background: var(--text-on-dark);
+}
+/* Archivado: conserva su color pero apagado. */
+.project-card.is-archived {
+  filter: saturate(0.3);
+  opacity: 0.85;
+}
+.project-key-pill {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  box-shadow: inset 0 0 0 1.5px rgba(18, 18, 18, 0.12);
+}
+
+/* Selector de color del proyecto */
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+.color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.color-swatch {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px rgba(18, 18, 18, 0.12);
+  transition: transform 0.12s ease;
+}
+.color-swatch:hover {
+  transform: scale(1.08);
+}
+.color-swatch[aria-checked='true'],
+.color-swatch.selected {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--ink);
+}
+.color-swatch.custom {
+  background: conic-gradient(#ff8b7b, #f7f38a, #9ef0a0, #7fe3f0, #c9a5f7, #f7a8cf, #ff8b7b);
+}
+.color-swatch.custom:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.color-swatch.custom input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.color-preview {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  box-shadow: inset 0 0 0 1.5px rgba(18, 18, 18, 0.12);
 }
 
 /* Barra de avance */

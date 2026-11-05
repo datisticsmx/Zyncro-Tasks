@@ -751,3 +751,195 @@ a.task-card {
   white-space: nowrap;
   font-size: 14px;
 }
+
+/* ── Casilla de "completada" ──────────────────────────────────────────
+   Accesible desde el tablero, la lista, el checklist, Mis tareas y el panel.
+   Vive dentro de tarjetas arrastrables y enlaces: ver components/TaskCheck. */
+.task-check {
+  flex: none;
+  margin: 0;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.task-check:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.task-check:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+/* Título de una tarea ya completada */
+.task-card-title.is-done,
+.row-title.is-done,
+.check-row.is-done .check-row-title {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+/* Columna de casilla en la vista Lista */
+.task-table .th-check,
+.task-table .td-check {
+  width: 36px;
+  padding-right: 0;
+  text-align: center;
+}
+
+/* Casilla junto al título del panel de tarea */
+.drawer-title-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+.drawer-title-row .task-check {
+  margin-top: 8px;
+}
+
+/* ── Vista Checklist (grupos de tareas) ────────────────────────────── */
+.check-view {
+  display: grid;
+  gap: 16px;
+}
+.check-new-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+  min-width: 260px;
+}
+.check-new-group .input {
+  flex: 1;
+  min-width: 180px;
+}
+.check-group {
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.check-group-head {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-right: 36px;
+  margin-bottom: 12px;
+}
+.check-group-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+.check-rename {
+  flex: 1;
+  min-width: 200px;
+}
+.checklist-menu {
+  top: 0;
+  right: 0;
+}
+.check-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.check-bar {
+  width: 120px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.check-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--green);
+  transition: width 0.2s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .check-bar span {
+    transition: none;
+  }
+}
+.check-count {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+.check-empty {
+  padding: 10px 2px;
+  font-size: 13px;
+}
+.check-list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.check-row {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 44px 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.check-row:hover {
+  box-shadow: var(--shadow-sm);
+}
+.check-row.is-done {
+  background: color-mix(in srgb, var(--surface) 70%, var(--surface-2));
+}
+.check-row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 180px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.check-row-title {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.check-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.check-row .card-menu {
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+}
+.check-group .quick-add-btn:hover {
+  background: var(--surface);
+}
+.menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .check-progress {
+    margin-left: 0;
+  }
+  .check-bar {
+    width: 84px;
+  }
+}
