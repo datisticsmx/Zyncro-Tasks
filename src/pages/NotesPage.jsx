@@ -13,6 +13,23 @@ import { t } from '../i18n/es'
 
 const DATE = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' })
 
+/** Minúsculas y sin acentos, para que "reunion" encuentre "Reunión". */
+const fold = (s) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+
+/** Todo el texto visible de la nota: cuerpo, autor, proyecto, destinatarios y nombres de archivo. */
+const haystack = (n) =>
+  fold(
+    [
+      n.body,
+      n.author.name,
+      n.project && `${n.project.key} ${n.project.name}`,
+      ...n.recipients.map((u) => u.name),
+      ...n.attachments.map((a) => a.name),
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  )
+
 function NoteCard({ note, onEdit, onDelete }) {
   const Icon = VISIBILITY_ICON[note.visibility]
   const scope =
@@ -73,6 +90,7 @@ export function NotesPage() {
   const notes = useNotes()
   const [scope, setScope] = useState('all')
   const [project, setProject] = useState('all') // 'all' | 'general' | id de proyecto
+  const [q, setQ] = useState('')
   const [editing, setEditing] = useState(null) // null | 'new' | nota
 
   const items = useMemo(() => notes.data ?? [], [notes.data])
@@ -82,11 +100,15 @@ export function NotesPage() {
     for (const n of items) if (n.project) map.set(n.project.id, n.project)
     return [...map.values()].sort((a, b) => a.key.localeCompare(b.key))
   }, [items])
-  const shown = items.filter(
-    (n) =>
-      (scope === 'all' || n.visibility === scope) &&
-      (project === 'all' || (project === 'general' ? !n.project : n.project?.id === project)),
-  )
+  // Cada palabra debe aparecer en la nota (en cualquier orden).
+  const words = fold(q).split(/\s+/).filter(Boolean)
+  const shown = items.filter((n) => {
+    if (scope !== 'all' && n.visibility !== scope) return false
+    if (project !== 'all' && (project === 'general' ? n.project : n.project?.id !== project)) return false
+    if (words.length === 0) return true
+    const text = haystack(n)
+    return words.every((w) => text.includes(w))
+  })
 
   async function remove(note) {
     if (!window.confirm(t.notes.confirmDelete)) return
@@ -142,6 +164,14 @@ export function NotesPage() {
 
       {items.length > 0 && (
         <div className="toolbar note-toolbar">
+          <input
+            className="input"
+            type="search"
+            aria-label={t.notes.search}
+            placeholder={t.notes.search}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
           <div className="segmented" role="group" aria-label={t.notes.whoSees}>
             {['all', ...NOTE_VISIBILITIES].map((s) => (
               <button key={s} type="button" aria-pressed={scope === s} onClick={() => setScope(s)}>

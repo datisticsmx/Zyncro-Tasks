@@ -554,13 +554,14 @@ export const es = {
     confirmDelete: '¿Borrar esta nota? También se borrarán sus archivos.',
     deleted: 'Nota borrada',
     confirmDiscard: 'Tienes cambios sin guardar. ¿Descartarlos?',
+    search: 'Buscar en las notas…',
     filterAll: 'Todas',
     filterAnyProject: 'Todos los proyectos',
     filterGeneral: 'Solo generales',
     emptyTitle: 'Todavía no hay notas',
     emptyBody: 'Pega la primera: para todos, para algunas personas o solo para ti.',
     noMatchTitle: 'Ninguna nota con ese filtro',
-    noMatchBody: 'Prueba con otro alcance o proyecto.',
+    noMatchBody: 'Prueba con otro texto, alcance o proyecto.',
   },
 
   search: {
