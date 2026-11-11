@@ -1,6 +1,7 @@
 /** Colores de la paleta (inspo) por estatus. El color se reserva para estatus y prioridad. */
 
 export const PROJECT_STATUS_COLOR = {
+  not_started: 'cyan',
   active: 'lilac',
   paused: 'yellow',
   completed: 'green',

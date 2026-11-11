@@ -42,6 +42,7 @@ function toForm(p) {
       color: DEFAULT_PROJECT_COLOR,
       members: [],
       repos: [],
+      custom: [],
     }
   }
   return {
@@ -58,8 +59,13 @@ function toForm(p) {
     color: p.color || '',
     members: p.members,
     repos: p.repositories.map((r) => ({ ...r })),
+    custom: (p.customFields || []).map((f) => ({ ...f })),
   }
 }
+
+/** Campos personalizados a enviar: se ignoran las filas totalmente vacías. */
+const customBody = (rows) =>
+  rows.filter((f) => f.label.trim() || f.value.trim()).map(({ label, value }) => ({ label, value }))
 
 /** Campos opcionales vacíos viajan como null. */
 const clean = (k, v) => (v === '' && !['key', 'name', 'description'].includes(k) ? null : v)
@@ -165,6 +171,7 @@ function ProjectForm({ project }) {
       const body = Object.fromEntries(FIELDS.map((k) => [k, clean(k, form[k])]))
       body.repositories = form.repos.filter((r) => r.label || r.url).map(({ label, url }) => ({ label, url }))
       body.member_ids = form.members.map((m) => m.id)
+      body.custom_fields = customBody(form.custom)
       const { project: created } = await api.post('/projects', body)
       return created
     }
@@ -173,6 +180,8 @@ function ProjectForm({ project }) {
     let unassigned = 0
     const changes = {}
     for (const k of FIELDS) if (form[k] !== original[k]) changes[k] = clean(k, form[k])
+    const custom = customBody(form.custom)
+    if (JSON.stringify(custom) !== JSON.stringify(customBody(original.custom))) changes.custom_fields = custom
     if (Object.keys(changes).length > 0) latest = (await api.patch(`/projects/${project.id}`, changes)).project
 
     const ids = form.members.map((m) => m.id).sort()
@@ -282,7 +291,7 @@ function ProjectForm({ project }) {
           />
           {isEdit && project.status !== 'archived' && (
             <Field label={t.projects.status} as="select" value={form.status} onChange={set('status')} error={fieldErrors.status}>
-              {['active', 'paused', 'completed'].map((s) => (
+              {['not_started', 'active', 'paused', 'completed'].map((s) => (
                 <option key={s} value={s}>
                   {t.projectStatus[s]}
                 </option>
@@ -394,6 +403,54 @@ function ProjectForm({ project }) {
             }}
           >
             <Plus size={16} /> {t.projects.addRepo}
+          </button>
+        </div>
+      </section>
+
+      <section className="card outlined form-grid">
+        <h3>{t.projects.sectionCustom}</h3>
+        <p className="muted">{t.projects.customHint}</p>
+        {fieldErrors.custom_fields && <span className="field-error">{fieldErrors.custom_fields}</span>}
+        {form.custom.map((c, i) => (
+          <div className="repo-row" key={i}>
+            <input
+              className="input"
+              aria-label={t.projects.customLabel}
+              placeholder={t.projects.customLabel}
+              value={c.label}
+              maxLength={60}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, custom: f.custom.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) }))
+              }
+            />
+            <input
+              className="input"
+              aria-label={t.projects.customValue}
+              placeholder={t.projects.customValue}
+              value={c.value}
+              maxLength={500}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, custom: f.custom.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)) }))
+              }
+            />
+            <button
+              type="button"
+              className="icon-btn light"
+              aria-label={t.projects.removeCustom}
+              onClick={() => setForm((f) => ({ ...f, custom: f.custom.filter((_, j) => j !== i) }))}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ))}
+        <div>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            disabled={form.custom.length >= 20}
+            onClick={() => setForm((f) => ({ ...f, custom: [...f.custom, { label: '', value: '' }] }))}
+          >
+            <Plus size={16} /> {t.projects.addCustom}
           </button>
         </div>
       </section>

@@ -8,6 +8,7 @@ import { ToastProvider } from './components/Toast'
 import './index.css'
 import './styles/projects.css'
 import './styles/tasks.css'
+import './styles/notes.css'
 
 const queryClient = new QueryClient({
   // Si cualquier consulta recibe 401 (sesión vencida o cerrada en otro lado),

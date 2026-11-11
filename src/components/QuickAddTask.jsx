@@ -48,7 +48,7 @@ export function QuickAddTask({
       <input
         className="input"
         autoFocus
-        maxLength={200}
+        maxLength={500}
         placeholder={t.tasks.newTaskPlaceholder}
         aria-label={ariaLabel || label}
         value={title}

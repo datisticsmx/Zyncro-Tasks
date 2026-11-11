@@ -13,6 +13,7 @@ export const PROJECT_COLORS = [
 export const DEFAULT_PROJECT_COLOR = PROJECT_COLORS[0].hex
 
 const STATUS_HEX = {
+  cyan: '#7fe3f0',
   lilac: '#c9a5f7',
   yellow: '#f7f38a',
   green: '#9ef0a0',

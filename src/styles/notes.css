@@ -1,0 +1,286 @@
+/* ── Notas tipo post-it ──────────────────────────────────────────────── */
+.note-toolbar .select {
+  width: auto;
+  min-width: 200px;
+}
+.note-toolbar .segmented {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.note-toolbar .segmented button {
+  white-space: nowrap;
+}
+
+.note-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 26px 22px;
+  align-items: start;
+  margin: 0;
+  padding: 8px 4px 0;
+  list-style: none;
+}
+
+/* Papel: esquinas casi rectas, sombra baja y una ligera inclinación alternada. */
+.note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+  padding: 14px 16px 12px;
+  border-radius: 4px 4px 22px 4px;
+  color: var(--ink);
+  box-shadow: 0 10px 18px -10px rgba(18, 18, 18, 0.45), 0 1px 2px rgba(18, 18, 18, 0.12);
+  transform: rotate(-1.2deg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.note:nth-child(3n + 2) {
+  transform: rotate(1deg);
+}
+.note:nth-child(4n + 3) {
+  transform: rotate(-0.4deg);
+}
+.note:nth-child(5n) {
+  transform: rotate(1.6deg);
+}
+.note:hover,
+.note:focus-within {
+  z-index: 1;
+  transform: rotate(0) translateY(-3px);
+  box-shadow: 0 18px 26px -12px rgba(18, 18, 18, 0.5), 0 1px 2px rgba(18, 18, 18, 0.12);
+}
+/* Cinta adhesiva */
+.note::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 64px;
+  height: 18px;
+  transform: translateX(-50%) rotate(-2deg);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 2px rgba(18, 18, 18, 0.12);
+}
+
+.note-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+.note-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+.note-scope svg,
+.note-visibility-option svg {
+  flex: none;
+}
+.note-project {
+  text-decoration: none;
+}
+.note-actions {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.note:hover .note-actions,
+.note:focus-within .note-actions {
+  opacity: 1;
+}
+.note-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.note-btn:hover {
+  background: rgba(18, 18, 18, 0.12);
+}
+
+.note-body {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.note-attachments {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.note-attachments a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.note-attachments a:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+.note-attachments a span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note-attachments svg {
+  flex: none;
+}
+
+.note-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(18, 18, 18, 0.25);
+  font-size: 12px;
+}
+.note-foot .who {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.note-foot time {
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* ── Formulario (modal) ──────────────────────────────────────────────── */
+.note-form {
+  display: grid;
+  gap: 18px;
+}
+/* El campo de texto es la nota misma: toma el color elegido. */
+.note-input {
+  width: 100%;
+  min-height: 150px;
+  padding: 16px;
+  border: 0;
+  border-radius: 4px 4px 22px 4px;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.45;
+  resize: vertical;
+  box-shadow: 0 8px 14px -10px rgba(18, 18, 18, 0.45);
+}
+.note-input::placeholder {
+  color: rgba(18, 18, 18, 0.5);
+}
+.note-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+.note-form .swatch {
+  width: 30px;
+  height: 30px;
+}
+
+.note-visibility {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.note-visibility-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.note-visibility-option strong {
+  font-weight: 500;
+}
+.note-visibility-option[aria-checked='true'] {
+  background: var(--ink);
+  color: var(--text-on-dark);
+  box-shadow: none;
+}
+
+.note-files {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.note-files li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+.note-files .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.note-files li.removed .name {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+@media (hover: none) {
+  .note-actions {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .note,
+  .note:nth-child(n) {
+    transform: none;
+    transition: none;
+  }
+}
+@media (max-width: 720px) {
+  .note-visibility {
+    grid-template-columns: 1fr;
+  }
+  .note-toolbar .select {
+    width: 100%;
+  }
+  .note-toolbar .segmented button {
+    padding: 6px 12px;
+  }
+}

@@ -13,6 +13,7 @@ import {
   Rocket,
   Server,
   Settings,
+  Tag,
 } from 'lucide-react'
 import { useProject } from '../../lib/projects'
 import { PROJECT_STATUS_COLOR, TASK_STATUS_COLOR, formatDate } from '../../lib/ui'
@@ -140,6 +141,15 @@ function Summary({ p }) {
           </div>
           <LinkRow icon={Rocket} label={t.projects.production} href={p.urlProduction} />
           <LinkRow icon={Server} label={t.projects.staging} href={p.urlStaging} />
+          {p.customFields.map((f) => (
+            <div className="info-row" key={f.label}>
+              <Tag size={17} aria-hidden="true" />
+              <span className="info-label">{f.label}</span>
+              <span className="info-value" title={f.value}>
+                {f.value}
+              </span>
+            </div>
+          ))}
 
           <h4 className="dark-subtitle">{t.projects.repositories}</h4>
           {p.repositories.length === 0 && <p className="dim">{t.projects.noRepos}</p>}

@@ -146,7 +146,7 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
             aria-label={t.tasks.title}
             aria-invalid={fieldErrors.title ? 'true' : undefined}
             rows={1}
-            maxLength={200}
+            maxLength={500}
             value={draft.title}
             onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value.replace(/\n/g, '') }))}
             onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
