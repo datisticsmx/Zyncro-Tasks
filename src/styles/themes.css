@@ -1,0 +1,386 @@
+/*
+ * Temas visuales. El tema vive en <html data-theme="…"> y solo cambia
+ * apariencia: colores, sombras y tipografía de títulos. Ninguna regla de
+ * aquí altera layout, tamaños ni comportamiento.
+ *
+ *   (sin atributo)      → Zyncro, el tema base de index.css
+ *   data-theme="gta6"   → GTA VI, noche de Vice City
+ */
+
+/* Pricedown (Ray Larabie / Typodermic): solo se descarga si el tema que la
+   usa está activo. Tiene un único grosor, así que los títulos van en 400
+   para que el navegador no la engorde de forma sintética. */
+@font-face {
+  font-family: 'Pricedown';
+  src: url('/fonts/pricedown.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   GTA VI — tokens
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root[data-theme='gta6'] {
+  /* Lienzo y superficies: noche de Leonida */
+  --canvas: #0a0412;
+  --surface: #180c27;
+  --surface-2: #241236;
+  --ink: #0c0617;
+  --ink-2: #140a22;
+  --ink-3: #2a1440;
+  --line: #35204f;
+  --line-dark: #452a66;
+
+  /* Texto */
+  --text: #fbf2ff;
+  --text-2: #c7aee0;
+  --text-3: #a28bbe;
+  --text-on-dark: #fbf2ff;
+  --text-on-dark-2: #bba2d6;
+
+  /* Paleta: neón de letrero, siempre con texto oscuro encima */
+  --yellow: #ffc24a;
+  --lilac: #d49bff;
+  --purple: #a855f7;
+  --coral: #ff8257;
+  --cyan: #5de3f0;
+  --green: #7befa8;
+  --pink: #ff7fc8;
+
+  /* Fechas de vencimiento */
+  --due-ok-bg: #1e1030;
+  --due-ok-line: #3a2456;
+  --due-soon-bg: #46330a;
+  --due-soon-fg: #ffd871;
+  --due-near-bg: #4d2412;
+  --due-near-fg: #ffb084;
+  --due-overdue-bg: #4c1029;
+  --due-overdue-fg: #ff9bbb;
+
+  /* Estados */
+  --danger: #ff6a92;
+  --danger-bg: #3b0d22;
+  --ok: #67e8a4;
+  --focus: #ff3da6;
+
+  --shadow-lg:
+    0 34px 70px -26px rgba(0, 0, 0, 0.9), 0 2px 10px -4px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 8px 20px -10px rgba(0, 0, 0, 0.8);
+
+  --font-display: 'Pricedown', var(--font);
+
+  /* Neones propios del tema */
+  --neon-pink: #ff2e9f;
+  --neon-orange: #ff7a3d;
+  --neon-sunset: linear-gradient(135deg, #ff2e9f 0%, #ff7a3d 100%);
+  --neon-ink: #190621;
+
+  color-scheme: dark;
+}
+
+/* ── Fondo: el atardecer de Vice City detrás de los paneles ──────────── */
+:root[data-theme='gta6'] body {
+  background:
+    radial-gradient(900px 520px at 10% 106%, rgba(255, 61, 166, 0.3), transparent 62%),
+    radial-gradient(780px 500px at 90% 102%, rgba(255, 122, 61, 0.26), transparent 60%),
+    radial-gradient(1100px 760px at 50% -14%, rgba(124, 56, 212, 0.3), transparent 66%),
+    var(--canvas);
+  background-attachment: fixed;
+}
+
+/* Grano fino de impresión; sin él los degradados se ven plásticos. */
+:root[data-theme='gta6'] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Títulos ─────────────────────────────────────────────────────────── */
+:root[data-theme='gta6'] h1,
+:root[data-theme='gta6'] h2,
+:root[data-theme='gta6'] h3,
+:root[data-theme='gta6'] h4,
+:root[data-theme='gta6'] .auth-brand {
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+:root[data-theme='gta6'] h1 {
+  font-size: clamp(30px, 3.4vw, 40px);
+  text-shadow: 0 0 26px rgba(255, 61, 166, 0.3);
+}
+:root[data-theme='gta6'] h2 {
+  font-size: 25px;
+}
+:root[data-theme='gta6'] h3 {
+  font-size: 19px;
+}
+:root[data-theme='gta6'] .auth-brand {
+  font-size: 24px;
+}
+/* Los h4 son etiquetas de 13 px y dentro de los títulos viajan contadores y
+   apostillas: a ese tamaño Pricedown se vuelve ilegible, así que esos textos
+   se quedan en la tipografía de lectura. */
+:root[data-theme='gta6'] h4 {
+  font-family: var(--font);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+:root[data-theme='gta6'] h1 .muted,
+:root[data-theme='gta6'] h2 .muted,
+:root[data-theme='gta6'] h3 .muted,
+:root[data-theme='gta6'] h1 small,
+:root[data-theme='gta6'] h2 small,
+:root[data-theme='gta6'] h3 small {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Superficies del armazón ─────────────────────────────────────────── */
+:root[data-theme='gta6'] .main-panel,
+:root[data-theme='gta6'] .auth-form-side {
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 143, 208, 0.16),
+    inset 0 0 0 1px rgba(255, 143, 208, 0.08);
+}
+
+:root[data-theme='gta6'] .card.outlined {
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+:root[data-theme='gta6'] .card.dark {
+  background: linear-gradient(180deg, #211034 0%, #150a24 100%);
+  box-shadow: inset 0 0 0 1px var(--line-dark);
+}
+:root[data-theme='gta6'] .menu-list,
+:root[data-theme='gta6'] .copy-box,
+:root[data-theme='gta6'] .toast {
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0 0 1px var(--line-dark);
+}
+:root[data-theme='gta6'] .modal {
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0 0 1px var(--line-dark);
+}
+:root[data-theme='gta6'] .modal-backdrop {
+  background: rgba(8, 3, 16, 0.72);
+}
+:root[data-theme='gta6'] .drawer-backdrop {
+  background: rgba(8, 3, 16, 0.62);
+}
+
+/* ── Barra de navegación: el letrero de neón ─────────────────────────── */
+:root[data-theme='gta6'] .rail {
+  background: linear-gradient(180deg, #ff3da6 0%, #ff5a78 52%, #ff7a3d 100%);
+  box-shadow: 0 24px 60px -28px rgba(255, 61, 166, 0.8);
+}
+:root[data-theme='gta6'] .rail-link {
+  color: var(--neon-ink);
+}
+:root[data-theme='gta6'] .rail-link:hover {
+  background: rgba(25, 6, 33, 0.14);
+}
+:root[data-theme='gta6'] .rail-link.active {
+  background: var(--ink);
+  color: #ffc24a;
+}
+:root[data-theme='gta6'] .rail-link .tip {
+  box-shadow: inset 0 0 0 1px var(--line-dark);
+}
+
+/* El logotipo adopta el degradado del tema. */
+:root[data-theme='gta6'] .rail-logo rect:nth-of-type(1),
+:root[data-theme='gta6'] .auth-brand rect:nth-of-type(1) {
+  fill: #ff3da6;
+}
+:root[data-theme='gta6'] .rail-logo rect:nth-of-type(2),
+:root[data-theme='gta6'] .auth-brand rect:nth-of-type(2) {
+  fill: #ff7a3d;
+}
+:root[data-theme='gta6'] .rail-logo rect:nth-of-type(3),
+:root[data-theme='gta6'] .auth-brand rect:nth-of-type(3) {
+  fill: #a855f7;
+}
+:root[data-theme='gta6'] .rail-logo rect:nth-of-type(4),
+:root[data-theme='gta6'] .auth-brand rect:nth-of-type(4) {
+  fill: #ffc24a;
+}
+
+/* ── Botones y controles ─────────────────────────────────────────────── */
+:root[data-theme='gta6'] .btn-dark {
+  background: var(--neon-pink);
+  color: var(--neon-ink);
+  font-weight: 600;
+  box-shadow: 0 10px 28px -12px rgba(255, 46, 159, 0.9);
+}
+:root[data-theme='gta6'] .btn-dark:hover:not(:disabled) {
+  background: #ff52b1;
+}
+:root[data-theme='gta6'] .btn-ghost {
+  box-shadow: inset 0 0 0 1.5px var(--line-dark);
+}
+:root[data-theme='gta6'] .btn-ghost:hover:not(:disabled) {
+  background: var(--ink-3);
+}
+:root[data-theme='gta6'] .icon-btn {
+  background: var(--neon-pink);
+  color: var(--neon-ink);
+}
+:root[data-theme='gta6'] .icon-btn.light {
+  background: var(--surface-2);
+  color: var(--text);
+}
+:root[data-theme='gta6'] .segmented {
+  background: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+:root[data-theme='gta6'] .segmented [aria-pressed='true'],
+:root[data-theme='gta6'] .segmented [aria-current='page'] {
+  background: var(--neon-pink);
+  color: var(--neon-ink);
+}
+:root[data-theme='gta6'] .input,
+:root[data-theme='gta6'] .select {
+  border-color: var(--line);
+}
+:root[data-theme='gta6'] .input:focus,
+:root[data-theme='gta6'] .select:focus {
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 0 4px rgba(255, 61, 166, 0.18);
+}
+:root[data-theme='gta6'] .input::placeholder,
+:root[data-theme='gta6'] textarea::placeholder {
+  color: var(--text-3);
+}
+:root[data-theme='gta6'] .topbar .search input {
+  border-color: transparent;
+}
+/* El icono nativo del date picker es negro sobre negro. */
+:root[data-theme='gta6'] input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.65);
+}
+:root[data-theme='gta6'] .form-ok {
+  background: #0f2e1d;
+}
+:root[data-theme='gta6'] .progress-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+:root[data-theme='gta6'] .progress-track span {
+  background: var(--neon-sunset);
+}
+/* Dentro de una tarjeta de proyecto la barra va sobre el color del proyecto,
+   no sobre el panel: ahí mandan los contrastes del tema base. */
+:root[data-theme='gta6'] .project-card .progress-track {
+  background: rgba(18, 18, 18, 0.12);
+}
+:root[data-theme='gta6'] .project-card .progress-track span {
+  background: var(--ink);
+}
+:root[data-theme='gta6'] .project-card.on-dark .progress-track {
+  background: rgba(255, 255, 255, 0.25);
+}
+:root[data-theme='gta6'] .project-card.on-dark .progress-track span {
+  background: var(--text-on-dark);
+}
+:root[data-theme='gta6'] .spinner {
+  border-color: var(--line);
+  border-top-color: var(--neon-pink);
+}
+:root[data-theme='gta6'] .skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, #32194a 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+}
+:root[data-theme='gta6'] .pill.gray,
+:root[data-theme='gta6'] .bg-gray {
+  background: #301c48;
+  color: var(--text);
+}
+
+/* ── Texto que el tema base daba por oscuro sobre fondo claro ────────── */
+:root[data-theme='gta6'] .task-card,
+:root[data-theme='gta6'] .checklist-row,
+:root[data-theme='gta6'] .comment-bubble,
+:root[data-theme='gta6'] .activity-row,
+:root[data-theme='gta6'] .attachment-row,
+:root[data-theme='gta6'] .note-editor,
+:root[data-theme='gta6'] .search-result {
+  color: var(--text);
+}
+:root[data-theme='gta6'] .task-card {
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+:root[data-theme='gta6'] .task-card:hover {
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 0 0 1px var(--line-dark);
+}
+:root[data-theme='gta6'] .link {
+  color: var(--text);
+  text-decoration-color: var(--neon-pink);
+}
+:root[data-theme='gta6'] [type='checkbox'],
+:root[data-theme='gta6'] [type='radio'] {
+  accent-color: var(--neon-pink);
+}
+
+/* ── Acceso: la portada es donde el tema se presenta ─────────────────── */
+:root[data-theme='gta6'] .auth-hero {
+  background:
+    radial-gradient(620px 420px at 82% 96%, rgba(255, 122, 61, 0.55), transparent 64%),
+    radial-gradient(680px 460px at 14% 88%, rgba(255, 61, 166, 0.5), transparent 62%),
+    linear-gradient(180deg, #1a0a2c 0%, #2a0f3d 58%, #3d1340 100%);
+}
+:root[data-theme='gta6'] .auth-hero h1 {
+  text-shadow: 0 0 38px rgba(255, 61, 166, 0.45);
+}
+
+/* ── Superficies del navegador que también son parte del tema ────────── */
+:root[data-theme='gta6'] ::selection {
+  background: rgba(255, 61, 166, 0.38);
+  color: #fff;
+}
+:root[data-theme='gta6'] .input,
+:root[data-theme='gta6'] textarea {
+  caret-color: var(--neon-pink);
+}
+:root[data-theme='gta6'] * {
+  scrollbar-color: #5a2f72 transparent;
+  scrollbar-width: thin;
+}
+:root[data-theme='gta6'] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+:root[data-theme='gta6'] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+:root[data-theme='gta6'] ::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #5a2f72;
+  background-clip: content-box;
+}
+:root[data-theme='gta6'] ::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-pink);
+  background-clip: content-box;
+}
+
+/* En móvil la barra deja de ser vertical: el atardecer gira con ella. */
+@media (max-width: 720px) {
+  :root[data-theme='gta6'] .rail {
+    background: linear-gradient(90deg, #ff2e9f 0%, #ff5a78 52%, #ff7a3d 100%);
+    box-shadow: 0 -18px 50px -30px rgba(255, 46, 159, 0.9);
+  }
+}

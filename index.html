@@ -11,6 +11,14 @@
       rel="stylesheet"
     />
     <title>Zyncro</title>
+    <script>
+      // El tema guardado se aplica antes del primer pintado para que al
+      // recargar no se vea un parpadeo del tema anterior (src/lib/theme.js).
+      try {
+        var zyncroTheme = localStorage.getItem('zyncro.theme')
+        if (zyncroTheme) document.documentElement.setAttribute('data-theme', zyncroTheme)
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

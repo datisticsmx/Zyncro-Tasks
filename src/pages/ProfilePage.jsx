@@ -7,6 +7,7 @@ import { Avatar } from '../components/Avatar'
 import { AvatarEditor } from '../components/AvatarEditor'
 import { Field, FormError } from '../components/Field'
 import { PasswordStrength } from '../components/PasswordStrength'
+import { ThemePicker } from '../components/ThemePicker'
 import { useToast } from '../components/Toast'
 import { t } from '../i18n/es'
 
@@ -164,18 +165,21 @@ export function ProfilePage() {
         </div>
       </div>
       <div className="profile-grid">
-        <div className="card outlined profile-id">
-          <Avatar user={user} size={104} />
-          <h2>{user.name}</h2>
-          <span className="pill lilac">{t.roles[user.role]}</span>
-          <span className="muted" style={{ fontSize: 14 }}>
-            {user.email}
-          </span>
-          {user.githubUrl && (
-            <a className="link" href={user.githubUrl} target="_blank" rel="noreferrer noopener">
-              github.com/{user.githubUsername} <ExternalLink size={13} aria-hidden="true" />
-            </a>
-          )}
+        <div className="stack">
+          <div className="card outlined profile-id">
+            <Avatar user={user} size={104} />
+            <h2>{user.name}</h2>
+            <span className="pill lilac">{t.roles[user.role]}</span>
+            <span className="muted" style={{ fontSize: 14 }}>
+              {user.email}
+            </span>
+            {user.githubUrl && (
+              <a className="link" href={user.githubUrl} target="_blank" rel="noreferrer noopener">
+                github.com/{user.githubUsername} <ExternalLink size={13} aria-hidden="true" />
+              </a>
+            )}
+          </div>
+          <ThemePicker />
         </div>
         <div className="stack">
           <AvatarEditor key={`avatar-${user.updatedAt}`} user={user} />

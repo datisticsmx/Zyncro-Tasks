@@ -93,6 +93,9 @@ export const es = {
     currentPassword: 'Contraseña actual',
     changePassword: 'Cambiar contraseña',
     passwordChanged: 'Contraseña actualizada',
+    themesTitle: 'Temas',
+    themesSubtitle: 'Elige cómo se ve Zyncro para ti.',
+    themesHint: 'Se guarda solo en este navegador.',
   },
 
   people: {
