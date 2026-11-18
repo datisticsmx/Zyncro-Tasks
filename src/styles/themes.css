@@ -40,14 +40,16 @@
   --text-on-dark: #fbf2ff;
   --text-on-dark-2: #bba2d6;
 
-  /* Paleta: neón de letrero, siempre con texto oscuro encima */
-  --yellow: #ffc24a;
-  --lilac: #d49bff;
+  /* Paleta: neón de letrero, siempre con texto oscuro encima. Un punto por
+     debajo del neón puro: en bloques grandes sobre fondo oscuro, el tono a
+     tope deslumbra, y así el texto oscuro mantiene 6:1 o más. */
+  --yellow: #f0ad2f;
+  --lilac: #c384f5;
   --purple: #a855f7;
-  --coral: #ff8257;
-  --cyan: #5de3f0;
-  --green: #7befa8;
-  --pink: #ff7fc8;
+  --coral: #f56f45;
+  --cyan: #49cfdd;
+  --green: #63dd93;
+  --pink: #f76ab9;
 
   /* Fechas de vencimiento */
   --due-ok-bg: #1e1030;
@@ -306,6 +308,42 @@
 :root[data-theme='gta6'] .bg-gray {
   background: #301c48;
   color: var(--text);
+}
+
+/* ── Tinta sobre los bloques de color ────────────────────────────────── */
+/*
+ * El tema base pinta el texto de la página en oscuro, así que los cuadros de
+ * color heredaban una tinta que contrastaba con ellos. Aquí el texto de la
+ * página es casi blanco, y heredado sobre un amarillo o un cian quedaba
+ * ilegible y cansaba la vista. Dos reglas lo arreglan de raíz:
+ *   1) cada bloque de color declara su propia tinta oscura, y
+ *   2) los títulos heredan la del bloque en el que están en vez de imponer
+ *      la de la página (sobre fondo oscuro siguen heredando el casi blanco).
+ */
+:root[data-theme='gta6'] .bg-yellow,
+:root[data-theme='gta6'] .bg-lilac,
+:root[data-theme='gta6'] .bg-coral,
+:root[data-theme='gta6'] .bg-cyan,
+:root[data-theme='gta6'] .bg-green,
+:root[data-theme='gta6'] .bg-pink,
+:root[data-theme='gta6'] .pill.yellow,
+:root[data-theme='gta6'] .pill.lilac,
+:root[data-theme='gta6'] .pill.coral,
+:root[data-theme='gta6'] .pill.cyan,
+:root[data-theme='gta6'] .pill.green,
+:root[data-theme='gta6'] .pill.pink,
+:root[data-theme='gta6'] .pill.light {
+  color: var(--neon-ink);
+}
+/* …salvo la píldora translúcida de una tarjeta oscura, que sí va en claro. */
+:root[data-theme='gta6'] .project-card.on-dark .pill.light {
+  color: var(--text-on-dark);
+}
+:root[data-theme='gta6'] h1,
+:root[data-theme='gta6'] h2,
+:root[data-theme='gta6'] h3,
+:root[data-theme='gta6'] h4 {
+  color: inherit;
 }
 
 /* ── Texto que el tema base daba por oscuro sobre fondo claro ────────── */

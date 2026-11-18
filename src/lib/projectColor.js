@@ -40,7 +40,9 @@ export function isDarkColor(hex) {
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
   }
   const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255)
-  // Por encima del cruce teórico (~0.18): los tonos medios (rojo, verde, gris)
-  // se leen mejor con texto blanco. Los presets (L ≥ 0.4) quedan con negro.
-  return L < 0.3
+  // Umbral de cruce real entre nuestra tinta clara y la oscura: por debajo
+  // gana el texto blanco (rojos, verdes y azules intensos), por encima gana
+  // el oscuro. A 0.3 los naranjas medios (L≈0.28) caían del lado blanco y
+  // quedaban en 2.9:1; a 0.21 pasan a 5.6:1 y el resto no se mueve.
+  return L < 0.21
 }
