@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Archive, ArrowLeft, Check, Globe, Lock, Palette, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { api, ApiError } from '../../lib/api'
@@ -528,6 +528,7 @@ export function ProjectFormPage() {
   else if (project.isPending) body = <SkeletonRows rows={4} height={180} />
   else if (project.isError)
     body = project.error.status === 404 ? <NotFound /> : <ErrorState error={project.error} onRetry={() => project.refetch()} />
+  else if (project.data.type === 'activity') return <Navigate to={`/activities/${key}/settings`} replace />
   else if (!project.data.permissions.canEdit) body = <NoAccess />
   else body = <ProjectForm key={project.data.updatedAt} project={project.data} />
 

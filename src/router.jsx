@@ -10,6 +10,9 @@ import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { ProjectPage } from './pages/projects/ProjectPage'
 import { ProjectFormPage } from './pages/projects/ProjectFormPage'
 import { ProjectWorkspace } from './pages/projects/ProjectWorkspace'
+import { ActivitiesPage } from './pages/activities/ActivitiesPage'
+import { ActivityPage } from './pages/activities/ActivityPage'
+import { ActivityFormPage } from './pages/activities/ActivityFormPage'
 import { PeoplePage } from './pages/PeoplePage'
 import { NotesPage } from './pages/NotesPage'
 import { ProfilePage } from './pages/ProfilePage'
@@ -43,6 +46,10 @@ export const router = createBrowserRouter([
           { path: '/projects/:key/list', element: <ProjectWorkspace view="list" /> },
           { path: '/projects/:key/checklist', element: <ProjectWorkspace view="checklist" /> },
           { path: '/projects/:key/tasks/:number', element: <ProjectWorkspace /> },
+          { path: '/activities', element: <ActivitiesPage /> },
+          { path: '/activities/new', caseSensitive: true, element: <ActivityFormPage /> },
+          { path: '/activities/:key', element: <ActivityPage /> },
+          { path: '/activities/:key/settings', element: <ActivityFormPage /> },
           { path: '/notes', element: <NotesPage /> },
           { path: '/people', element: <PeoplePage /> },
           { path: '/profile', element: <ProfilePage /> },
