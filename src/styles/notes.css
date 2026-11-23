@@ -21,34 +21,67 @@
   list-style: none;
 }
 
-/* Papel: esquinas casi rectas, sombra baja y una ligera inclinación alternada. */
+/* Contenedor que se arrastra (dnd-kit le pone su propio transform). */
+.note-item {
+  position: relative;
+  touch-action: manipulation;
+}
+.note-item.dragging {
+  z-index: 5;
+}
+
+/* Papel: esquinas casi rectas, sombra baja y una ligera inclinación alternada.
+   Todas miden lo mismo; si el texto no cabe, "Ver más" la expande. */
 .note {
+  --note-height: 260px;
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 200px;
+  height: var(--note-height);
   padding: 14px 16px 12px;
   border-radius: 4px 4px 22px 4px;
   color: var(--ink);
   box-shadow: 0 10px 18px -10px rgba(18, 18, 18, 0.45), 0 1px 2px rgba(18, 18, 18, 0.12);
+  cursor: grab;
   transform: rotate(-1.2deg);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.note:nth-child(3n + 2) {
+.note.expanded {
+  height: auto;
+  min-height: var(--note-height);
+}
+.note-item:nth-child(3n + 2) .note {
   transform: rotate(1deg);
 }
-.note:nth-child(4n + 3) {
+.note-item:nth-child(4n + 3) .note {
   transform: rotate(-0.4deg);
 }
-.note:nth-child(5n) {
+.note-item:nth-child(5n) .note {
   transform: rotate(1.6deg);
 }
-.note:hover,
-.note:focus-within {
+.note-item:hover,
+.note-item:focus-within {
   z-index: 1;
+}
+.note-item:hover .note,
+.note-item:focus-within .note {
   transform: rotate(0) translateY(-3px);
   box-shadow: 0 18px 26px -12px rgba(18, 18, 18, 0.5), 0 1px 2px rgba(18, 18, 18, 0.12);
+}
+.note-item.dragging .note {
+  cursor: grabbing;
+  transform: rotate(2deg) scale(1.03);
+  box-shadow: 0 26px 36px -14px rgba(18, 18, 18, 0.55), 0 1px 2px rgba(18, 18, 18, 0.12);
+}
+.note-grip {
+  margin-left: -6px;
+  cursor: grab;
+  opacity: 0.55;
+}
+.note-grip:hover,
+.note-grip:focus-visible {
+  opacity: 1;
 }
 /* Cinta adhesiva */
 .note::before {
@@ -65,6 +98,7 @@
 }
 
 .note-top {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -114,13 +148,47 @@
 
 .note-body {
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
   font-size: 15px;
   line-height: 1.45;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
+/* Recortada: el texto se desvanece al final en lugar de cortarse en seco. */
+.note:not(.expanded) .note-body {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+}
+.note.expanded .note-body,
+.note.expanded .note-attachments {
+  overflow: visible;
+  max-height: none;
+}
+.note-more {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: -6px;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.note-more:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
 .note-attachments {
+  flex: none;
+  max-height: 50px;
+  overflow: hidden;
   display: grid;
   gap: 4px;
   margin: 0;
@@ -152,6 +220,7 @@
 }
 
 .note-foot {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -268,7 +337,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .note,
-  .note:nth-child(n) {
+  .note-item:nth-child(n) .note {
     transform: none;
     transition: none;
   }

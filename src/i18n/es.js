@@ -624,6 +624,9 @@ export const es = {
     emptyBody: 'Pega la primera: para todos, para algunas personas o solo para ti.',
     noMatchTitle: 'Ninguna nota con ese filtro',
     noMatchBody: 'Prueba con otro texto, alcance o proyecto.',
+    move: 'Mover nota (arrastra o usa las flechas)',
+    showMore: 'Ver más',
+    showLess: 'Ver menos',
   },
 
   search: {

@@ -1,9 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { Paperclip, Pencil, Plus, StickyNote, Trash2 } from 'lucide-react'
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { ChevronDown, ChevronUp, GripVertical, Paperclip, Pencil, Plus, StickyNote, Trash2 } from 'lucide-react'
 import { api } from '../lib/api'
-import { NOTES_KEY, NOTE_VISIBILITIES, VISIBILITY_ICON, useNotes } from '../lib/notes'
+import { NOTES_KEY, NOTE_VISIBILITIES, VISIBILITY_ICON, useNoteOrder, useNotes } from '../lib/notes'
+import { useMe } from '../lib/session'
 import { Avatar } from '../components/Avatar'
 import { NoteModal } from '../components/NoteModal'
 import { ProjectKeyPill } from '../components/ProjectKeyPill'
@@ -30,15 +34,56 @@ const haystack = (n) =>
       .join('\n'),
   )
 
+/**
+ * ¿El texto no cabe en el alto fijo de la nota? Se mide solo con la nota
+ * recortada (expandida conserva el último valor, para poder contraerla) y se
+ * vuelve a medir si cambia el tamaño (ventana, fuente).
+ */
+function useOverflow(ref, { enabled, deps }) {
+  const [overflows, setOverflows] = useState(false)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el || !enabled) return undefined
+    const check = () => setOverflows(el.scrollHeight > el.clientHeight + 1)
+    const ro = new ResizeObserver(check)
+    ro.observe(el)
+    return () => ro.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, ...deps])
+  return overflows
+}
+
 function NoteCard({ note, onEdit, onDelete }) {
+  const [expanded, setExpanded] = useState(false)
+  const bodyRef = useRef(null)
+  const bodyOverflows = useOverflow(bodyRef, { enabled: !expanded, deps: [note.body, note.attachments.length] })
+  // Recortada caben 2 archivos; con más también se ofrece "Ver más".
+  const canExpand = bodyOverflows || note.attachments.length > 2
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: note.id })
+  const style = { transform: CSS.Translate.toString(transform), transition }
+  // Con el mouse se arrastra la nota completa; con el teclado, desde el asa.
+  const { onKeyDown, ...pointerListeners } = listeners || {}
+
   const Icon = VISIBILITY_ICON[note.visibility]
   const scope =
     note.visibility === 'selected'
       ? t.notes.sharedWith(note.recipients.map((u) => u.name).join(', '))
       : t.notes.visibility[note.visibility]
   return (
-    <li className={`note bg-${note.color}`}>
+    <li ref={setNodeRef} style={style} className={`note-item${isDragging ? ' dragging' : ''}`}>
+      <div className={`note bg-${note.color}${expanded ? ' expanded' : ''}`} {...pointerListeners}>
       <div className="note-top">
+        <button
+          type="button"
+          className="note-btn note-grip"
+          aria-label={t.notes.move}
+          title={t.notes.move}
+          {...attributes}
+          onKeyDown={onKeyDown}
+        >
+          <GripVertical size={15} />
+        </button>
         <span className="note-scope" title={scope}>
           <Icon size={14} aria-hidden="true" />
           {t.notes.visibility[note.visibility]}
@@ -61,7 +106,9 @@ function NoteCard({ note, onEdit, onDelete }) {
           )}
         </span>
       </div>
-      <p className="note-body">{note.body}</p>
+      <p className="note-body" ref={bodyRef}>
+        {note.body}
+      </p>
       {note.attachments.length > 0 && (
         <ul className="note-attachments">
           {note.attachments.map((a) => (
@@ -74,10 +121,17 @@ function NoteCard({ note, onEdit, onDelete }) {
           ))}
         </ul>
       )}
+      {canExpand && (
+        <button type="button" className="note-more" aria-expanded={expanded} onClick={() => setExpanded((x) => !x)}>
+          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {expanded ? t.notes.showLess : t.notes.showMore}
+        </button>
+      )}
       <div className="note-foot">
         <Avatar user={note.author} size={24} />
         <span className="who">{note.author.name}</span>
         <time dateTime={note.createdAt}>{DATE.format(new Date(note.createdAt))}</time>
+      </div>
       </div>
     </li>
   )
@@ -88,12 +142,19 @@ export function NotesPage() {
   const qc = useQueryClient()
   const toast = useToast()
   const notes = useNotes()
+  const { data: me } = useMe()
   const [scope, setScope] = useState('all')
   const [project, setProject] = useState('all') // 'all' | 'general' | id de proyecto
   const [q, setQ] = useState('')
   const [editing, setEditing] = useState(null) // null | 'new' | nota
 
-  const items = useMemo(() => notes.data ?? [], [notes.data])
+  const loaded = useMemo(() => notes.data ?? [], [notes.data])
+  // Orden propio de cada persona (arrastrando las notas).
+  const [items, moveNote] = useNoteOrder(me.id, loaded)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
   // Solo los proyectos que tienen alguna nota, para el filtro.
   const projects = useMemo(() => {
     const map = new Map()
@@ -144,11 +205,19 @@ export function NotesPage() {
     content = <EmptyState icon={StickyNote} color="bg-cyan" title={t.notes.noMatchTitle} body={t.notes.noMatchBody} />
   } else {
     content = (
-      <ul className="note-wall">
-        {shown.map((n) => (
-          <NoteCard key={n.id} note={n} onEdit={setEditing} onDelete={remove} />
-        ))}
-      </ul>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={({ active, over }) => over && moveNote(active.id, over.id)}
+      >
+        <SortableContext items={shown.map((n) => n.id)} strategy={rectSortingStrategy}>
+          <ul className="note-wall">
+            {shown.map((n) => (
+              <NoteCard key={n.id} note={n} onEdit={setEditing} onDelete={remove} />
+            ))}
+          </ul>
+        </SortableContext>
+      </DndContext>
     )
   }
 
