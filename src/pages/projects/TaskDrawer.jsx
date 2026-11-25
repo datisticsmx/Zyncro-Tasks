@@ -5,6 +5,7 @@ import { Eye, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../../lib/api'
 import { PRIORITIES, STATUSES, invalidateTaskViews, localToday, taskKeys, useProjectPeople, useTask } from '../../lib/tasks'
 import { useTaskGroups } from '../../lib/taskGroups'
+import { trackerOf } from '../../lib/tracker'
 import { TASK_STATUS_COLOR, dueTone } from '../../lib/ui'
 import { Markdown } from '../../components/Markdown'
 import { DateBadge } from '../../components/TaskCard'
@@ -58,8 +59,11 @@ function diffDraft(draft, task) {
 function DrawerBody({ task, project, onClose, dirtyRef }) {
   const qc = useQueryClient()
   const toast = useToast()
-  const people = useProjectPeople(project.id)
-  const groups = useTaskGroups(project.id)
+  // `project` puede ser un sprint: mismas tareas, otra API y sin grupos.
+  const { kind, taskApi, taskScope } = trackerOf(project)
+  const hasGroups = kind === 'project'
+  const people = useProjectPeople(project.id, kind)
+  const groups = useTaskGroups(hasGroups ? project.id : null)
   const [draft, setDraft] = useState(() => toDraft(task))
   const [editingDesc, setEditingDesc] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -90,17 +94,17 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
     let latest = task
     try {
       if (Object.keys(changes).length > 0) {
-        latest = (await api.patch(`/tasks/${task.id}?today=${localToday()}`, changes)).task
+        latest = (await api.patch(`${taskApi}/${task.id}?today=${localToday()}`, changes)).task
       }
       if (assigneesChanged) {
         latest = (
-          await api.put(`/tasks/${task.id}/assignees?today=${localToday()}`, {
+          await api.put(`${taskApi}/${task.id}/assignees?today=${localToday()}`, {
             user_ids: draft.assignees.map((u) => u.id),
           })
         ).task
       }
-      qc.setQueryData(taskKeys.detail(latest.ref), latest)
-      invalidateTaskViews(qc, project.key)
+      qc.setQueryData(taskKeys.detail(latest.ref, kind), latest)
+      invalidateTaskViews(qc, project.key, kind)
       setDraft(toDraft(latest))
       setEditingDesc(false)
       toast.success(t.common.saved)
@@ -108,8 +112,8 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
       if (err.fields) setFieldErrors(err.fields)
       toast.error(err.fields ? Object.values(err.fields)[0] : err.message)
       // Si una parte sí se guardó (p. ej. campos y no asignados), refresca lo guardado.
-      if (latest !== task) qc.setQueryData(taskKeys.detail(latest.ref), latest)
-      invalidateTaskViews(qc, project.key)
+      if (latest !== task) qc.setQueryData(taskKeys.detail(latest.ref, kind), latest)
+      invalidateTaskViews(qc, project.key, kind)
     } finally {
       setSaving(false)
     }
@@ -118,9 +122,9 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
   async function remove() {
     if (!window.confirm(t.tasks.confirmDelete(task.ref))) return
     try {
-      await api.del(`/tasks/${task.id}`)
-      qc.removeQueries({ queryKey: taskKeys.detail(task.ref) })
-      invalidateTaskViews(qc, project.key)
+      await api.del(`${taskApi}/${task.id}`)
+      qc.removeQueries({ queryKey: taskKeys.detail(task.ref, kind) })
+      invalidateTaskViews(qc, project.key, kind)
       toast.success(t.tasks.deleted(task.ref))
       dirtyRef.current = false
       onClose()
@@ -165,23 +169,25 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
               ))}
             </select>
           </label>
-          <label className="drawer-field">
-            <span>{t.tasks.group}</span>
-            <select
-              className="select"
-              value={draft.group_id}
-              onChange={set('group_id')}
-              aria-invalid={fieldErrors.group_id ? 'true' : undefined}
-            >
-              <option value="">{t.tasks.noGroup}</option>
-              {(groups.data || []).map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.group_id && <span className="field-error">{fieldErrors.group_id}</span>}
-          </label>
+          {hasGroups && (
+            <label className="drawer-field">
+              <span>{t.tasks.group}</span>
+              <select
+                className="select"
+                value={draft.group_id}
+                onChange={set('group_id')}
+                aria-invalid={fieldErrors.group_id ? 'true' : undefined}
+              >
+                <option value="">{t.tasks.noGroup}</option>
+                {(groups.data || []).map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.group_id && <span className="field-error">{fieldErrors.group_id}</span>}
+            </label>
+          )}
           <label className="drawer-field">
             <span>{t.tasks.priority}</span>
             <select className="select" value={draft.priority} onChange={set('priority')}>
@@ -277,9 +283,9 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
             </button>
           ))}
         </div>
-        {tab === 'comments' && <Comments scope="tasks" id={task.id} onActivity={refreshActivity} />}
-        {tab === 'attachments' && <Attachments scope="tasks" id={task.id} onActivity={refreshActivity} />}
-        {tab === 'activity' && <ActivityFeed scope="tasks" id={task.id} />}
+        {tab === 'comments' && <Comments scope={taskScope} id={task.id} onActivity={refreshActivity} />}
+        {tab === 'attachments' && <Attachments scope={taskScope} id={task.id} onActivity={refreshActivity} />}
+        {tab === 'activity' && <ActivityFeed scope={taskScope} id={task.id} />}
 
         {task.permissions?.canDelete && (
           <div className="drawer-danger">
@@ -305,10 +311,13 @@ function DrawerBody({ task, project, onClose, dirtyRef }) {
   )
 }
 
-/** /projects/:key/tasks/:number — panel lateral con URL propia (sección 6). */
+/**
+ * /projects/:key/tasks/:number — panel lateral con URL propia (sección 6).
+ * También /sprints/:key/tasks/:number, con `project` = el sprint.
+ */
 export function TaskDrawer({ project, number, onClose }) {
   const ref = `${project.key}-${number}`
-  const task = useTask(ref)
+  const task = useTask(ref, trackerOf(project).kind)
   const panelRef = useRef(null)
   const titleId = useId()
   const dirtyRef = useRef(false)

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { ArrowUpRight, FolderKanban, Globe, Lock, Plus } from 'lucide-react'
-import { useProjects } from '../../lib/projects'
+import { ArrowUpRight, Columns3, FolderKanban, Globe, LayoutGrid, Lock, Plus } from 'lucide-react'
+import { projectKeys, useProjects } from '../../lib/projects'
 import { formatDate } from '../../lib/ui'
 import { isDarkColor, projectColor } from '../../lib/projectColor'
 import { Avatar } from '../../components/Avatar'
 import { DateBadge } from '../../components/TaskCard'
 import { EmptyState, ErrorState, Skeleton } from '../../components/States'
+import { ProjectColumns } from './ProjectColumns'
 import { t } from '../../i18n/es'
 
 // Proyectos terminados: su fecha fin ya no es una alerta.
@@ -66,18 +67,26 @@ function ProjectCard({ p }) {
   )
 }
 
-/** /projects — RF-PRJ-11 con filtros reflejados en la URL. */
+/**
+ * /projects — RF-PRJ-11 con filtros reflejados en la URL. Dos vistas:
+ * "Cards" (cuadrícula, por defecto) y "Columnas" (?view=columns, un tablero
+ * por estatus donde se arrastran los proyectos para cambiarlo).
+ */
 export function ProjectsPage() {
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(params.get('q') || '')
   const [client, setClient] = useState(params.get('client') || '')
+  const columnsView = params.get('view') === 'columns'
 
   const filters = {
     q: params.get('q') || '',
     client: params.get('client') || '',
-    status: params.get('status') || '',
+    // En Columnas el estatus son las columnas: no se filtra por él y se
+    // piden todos los que caben en una página (máx. 100) para no partirlas.
+    status: columnsView ? '' : params.get('status') || '',
     mine: params.get('mine') || '',
     includeArchived: params.get('includeArchived') || '',
+    ...(columnsView ? { pageSize: 100 } : {}),
   }
 
   function setParam(key, value) {
@@ -124,6 +133,14 @@ export function ProjectsPage() {
         }
       />
     )
+  } else if (columnsView) {
+    content = (
+      <ProjectColumns
+        items={projects.data.items}
+        queryKey={projectKeys.list(filters)}
+        showArchived={Boolean(filters.includeArchived)}
+      />
+    )
   } else {
     content = (
       <div className="project-grid">
@@ -147,6 +164,14 @@ export function ProjectsPage() {
       </div>
 
       <div className="toolbar">
+        <div className="segmented" role="group" aria-label={t.projects.viewLabel}>
+          <button type="button" aria-pressed={!columnsView} onClick={() => setParam('view', '')}>
+            <LayoutGrid size={14} /> {t.projects.viewCards}
+          </button>
+          <button type="button" aria-pressed={columnsView} onClick={() => setParam('view', 'columns')}>
+            <Columns3 size={14} /> {t.projects.viewColumns}
+          </button>
+        </div>
         <div className="segmented" role="group" aria-label={t.projects.mine}>
           <button type="button" aria-pressed={!filters.mine} onClick={() => setParam('mine', '')}>
             {t.projects.all}
@@ -171,19 +196,21 @@ export function ProjectsPage() {
           value={client}
           onChange={(e) => setClient(e.target.value)}
         />
-        <select
-          className="select"
-          aria-label={t.projects.status}
-          value={filters.status}
-          onChange={(e) => setParam('status', e.target.value)}
-        >
-          <option value="">{t.projects.allStatus}</option>
-          {Object.entries(t.projectStatus).map(([k, label]) => (
-            <option key={k} value={k}>
-              {label}
-            </option>
-          ))}
-        </select>
+        {!columnsView && (
+          <select
+            className="select"
+            aria-label={t.projects.status}
+            value={filters.status}
+            onChange={(e) => setParam('status', e.target.value)}
+          >
+            <option value="">{t.projects.allStatus}</option>
+            {Object.entries(t.projectStatus).map(([k, label]) => (
+              <option key={k} value={k}>
+                {label}
+              </option>
+            ))}
+          </select>
+        )}
         <label className="check">
           <input
             type="checkbox"

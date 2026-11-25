@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   Calendar,
@@ -67,7 +67,7 @@ function LinkRow({ icon: Icon, label, href }) {
  * tablero en el mismo lugar. Reutiliza las mismas vistas que /list y /board,
  * así que filtros, drag & drop y casillas se comportan igual.
  */
-export function TasksSection({ p }) {
+function TasksSection({ p }) {
   const [view, setView] = useState('list')
   return (
     <section className="card outlined project-tasks">
@@ -214,8 +214,6 @@ export function ProjectPage() {
     )
   }
   const p = project.data
-  // Las Actividades tienen su propia pantalla.
-  if (p.type === 'activity') return <Navigate to={`/activities/${p.key}`} replace />
 
   return (
     <div className="page">

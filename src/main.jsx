@@ -9,7 +9,7 @@ import './index.css'
 import './styles/projects.css'
 import './styles/tasks.css'
 import './styles/notes.css'
-import './styles/activities.css'
+import './styles/sprints.css'
 import './styles/themes.css'
 
 const queryClient = new QueryClient({

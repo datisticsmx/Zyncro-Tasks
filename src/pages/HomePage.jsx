@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { CalendarCheck, CalendarClock, CalendarDays, CalendarX2, CheckSquare } from 'lucide-react'
 import { useMe } from '../lib/session'
 import { useMyTasks, useToggleDone } from '../lib/tasks'
+import { taskContainer } from '../lib/tracker'
 import { TaskCardBody } from '../components/TaskCard'
 import { EmptyState, ErrorState, Skeleton } from '../components/States'
 import { useToast } from '../components/Toast'
@@ -62,7 +63,7 @@ export function HomePage() {
                     <li key={task.id}>
                       <Link
                         className="task-card"
-                        to={`/projects/${task.projectKey}/tasks/${task.number}`}
+                        to={taskContainer(task).taskPath}
                         state={{ from: '/' }}
                       >
                         <TaskCardBody task={task} showProject onToggle={toggleDone} />

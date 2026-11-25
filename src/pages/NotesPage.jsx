@@ -62,8 +62,8 @@ function NoteCard({ note, onEdit, onDelete }) {
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: note.id })
   const style = { transform: CSS.Translate.toString(transform), transition }
-  // Con el mouse se arrastra la nota completa; con el teclado, desde el asa.
-  const { onKeyDown, ...pointerListeners } = listeners || {}
+  // Solo se arrastra desde el asa (mouse, touch y teclado): el resto de la
+  // nota queda libre para seleccionar texto, abrir adjuntos, etc.
 
   const Icon = VISIBILITY_ICON[note.visibility]
   const scope =
@@ -72,7 +72,7 @@ function NoteCard({ note, onEdit, onDelete }) {
       : t.notes.visibility[note.visibility]
   return (
     <li ref={setNodeRef} style={style} className={`note-item${isDragging ? ' dragging' : ''}`}>
-      <div className={`note bg-${note.color}${expanded ? ' expanded' : ''}`} {...pointerListeners}>
+      <div className={`note bg-${note.color}${expanded ? ' expanded' : ''}`}>
       <div className="note-top">
         <button
           type="button"
@@ -80,7 +80,7 @@ function NoteCard({ note, onEdit, onDelete }) {
           aria-label={t.notes.move}
           title={t.notes.move}
           {...attributes}
-          onKeyDown={onKeyDown}
+          {...listeners}
         >
           <GripVertical size={15} />
         </button>

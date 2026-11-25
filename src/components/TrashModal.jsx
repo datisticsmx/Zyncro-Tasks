@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { api } from '../lib/api'
 import { invalidateTaskViews } from '../lib/tasks'
+import { trackerOf } from '../lib/tracker'
 import { Modal } from './Modal'
 import { EmptyState, ErrorState, SkeletonRows } from './States'
 import { useToast } from './Toast'
@@ -9,21 +10,22 @@ import { t } from '../i18n/es'
 
 const DATETIME = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
 
-/** RF-TSK-09: papelera del proyecto (solo Admin), restaurable 30 días. */
+/** RF-TSK-09: papelera del proyecto o sprint (solo Admin), restaurable 30 días. */
 export function TrashModal({ project, onClose }) {
   const qc = useQueryClient()
   const toast = useToast()
+  const tr = trackerOf(project)
   const trash = useQuery({
     queryKey: ['tasks', 'trash', project.id],
-    queryFn: () => api.get(`/projects/${project.id}/tasks/deleted`),
+    queryFn: () => api.get(`${tr.api}/${project.id}/tasks/deleted`),
   })
 
   async function restore(task) {
     try {
-      await api.post(`/tasks/${task.id}/restore`)
+      await api.post(`${tr.taskApi}/${task.id}/restore`)
       toast.success(t.trash.restored(task.ref))
       qc.invalidateQueries({ queryKey: ['tasks', 'trash', project.id] })
-      invalidateTaskViews(qc, project.key)
+      invalidateTaskViews(qc, project.key, tr.kind)
     } catch (err) {
       toast.error(err.message)
     }

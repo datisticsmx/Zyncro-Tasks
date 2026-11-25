@@ -1,29 +1,38 @@
 /**
- * Actividades: "mini proyectos" de un par de días, normalmente a cargo de una
- * persona y con una lista de tareas. En la API son proyectos con
- * type = 'activity' y un responsable (owner_id), así que reutilizan tareas,
- * tablero, checklist, comentarios y adjuntos.
+ * Sprints: trabajos cortos con su propia lista de actividades, responsables y
+ * fechas de entrega. Son un modelo independiente de los proyectos en la API
+ * (/sprints, /sprint-tasks); comparten con ellos solo los componentes de
+ * tablero, lista y panel de tarea (ver lib/tracker.js).
  */
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { api, qs } from './api'
 import { daysUntil } from './ui'
 
-export const activityKeys = {
-  all: ['projects', 'list', 'activities'],
-  list: (filters) => ['projects', 'list', 'activities', filters],
+export const sprintKeys = {
+  all: ['sprints'],
+  list: (filters) => ['sprints', 'list', filters],
+  detail: (ref) => ['sprints', 'detail', String(ref).toUpperCase()],
 }
 
-export function useActivities(filters) {
+export function useSprints(filters) {
   return useQuery({
-    queryKey: activityKeys.list(filters),
-    queryFn: () => api.get(`/projects${qs({ ...filters, type: 'activity', pageSize: 100 })}`),
+    queryKey: sprintKeys.list(filters),
+    queryFn: () => api.get(`/sprints${qs({ ...filters, pageSize: 100 })}`),
     placeholderData: keepPreviousData,
   })
 }
 
+export function useSprint(ref) {
+  return useQuery({
+    queryKey: sprintKeys.detail(ref),
+    queryFn: async () => (await api.get(`/sprints/${encodeURIComponent(ref)}`)).sprint,
+    enabled: Boolean(ref),
+  })
+}
+
 /** Columnas del dashboard, en orden. */
-export const ACTIVITY_PHASES = [
+export const SPRINT_PHASES = [
   { id: 'overdue', color: 'coral' },
   { id: 'in_progress', color: 'lilac' },
   { id: 'upcoming', color: 'cyan' },
@@ -31,17 +40,17 @@ export const ACTIVITY_PHASES = [
 ]
 
 /**
- * En qué columna cae una actividad:
- *   done        → completada/archivada, o todas sus tareas hechas.
+ * En qué columna cae un sprint:
+ *   done        → completado/archivado, o todas sus actividades hechas.
  *   overdue     → la fecha fin ya pasó.
  *   upcoming    → aún no empieza.
- *   in_progress → lo demás (incluye las que no tienen fechas).
+ *   in_progress → lo demás (incluye los que no tienen fechas).
  */
-export function activityPhase(a) {
-  if (['completed', 'archived'].includes(a.status)) return 'done'
-  if (a.stats.total > 0 && a.stats.done === a.stats.total) return 'done'
-  if (a.endDateTentative && daysUntil(a.endDateTentative) < 0) return 'overdue'
-  if (a.startDate && daysUntil(a.startDate) > 0) return 'upcoming'
+export function sprintPhase(s) {
+  if (['completed', 'archived'].includes(s.status)) return 'done'
+  if (s.stats.total > 0 && s.stats.done === s.stats.total) return 'done'
+  if (s.endDate && daysUntil(s.endDate) < 0) return 'overdue'
+  if (s.startDate && daysUntil(s.startDate) > 0) return 'upcoming'
   return 'in_progress'
 }
 
@@ -49,13 +58,6 @@ export function activityPhase(a) {
 export function durationDays(start, end) {
   if (!start || !end) return null
   return daysUntil(end) - daysUntil(start) + 1
-}
-
-/** 'YYYY-MM-DD' + n días. */
-export function addDays(iso, n) {
-  const [y, m, d] = iso.split('-').map(Number)
-  const date = new Date(y, m - 1, d + n)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 /**

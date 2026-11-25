@@ -1,54 +1,57 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { CalendarCheck, CalendarClock, CalendarX2, ListChecks, Plus, Zap } from 'lucide-react'
-import { ACTIVITY_PHASES, activityPhase, durationDays, useActivities } from '../../lib/activities'
+import { CalendarCheck, CalendarClock, CalendarX2, Plus, Timer, Zap } from 'lucide-react'
+import { SPRINT_PHASES, durationDays, sprintPhase, useSprints } from '../../lib/sprints'
 import { formatRange } from '../../lib/ui'
 import { Avatar } from '../../components/Avatar'
-import { DateBadge } from '../../components/TaskCard'
+import { AssigneeStack, DateBadge } from '../../components/TaskCard'
 import { EmptyState, ErrorState, Skeleton } from '../../components/States'
 import { t } from '../../i18n/es'
 
 const PHASE_ICON = { overdue: CalendarX2, in_progress: Zap, upcoming: CalendarClock, done: CalendarCheck }
 
-function ActivityCard({ a }) {
-  const days = durationDays(a.startDate, a.endDateTentative)
-  const finished = ['completed', 'archived'].includes(a.status)
+function SprintCard({ s }) {
+  const days = durationDays(s.startDate, s.endDate)
+  const finished = ['completed', 'archived'].includes(s.status)
   return (
-    <Link to={`/activities/${a.key}`} className={`activity-card${a.status === 'archived' ? ' is-archived' : ''}`}>
-      <div className="activity-card-top">
-        <span className="pill dark">{a.key}</span>
-        {a.endDateTentative && <DateBadge date={a.endDateTentative} finished={finished} label={t.activities.end} />}
+    <Link to={`/sprints/${s.key}`} className={`sprint-card${s.status === 'archived' ? ' is-archived' : ''}`}>
+      <div className="sprint-card-top">
+        <span className="pill dark">{s.key}</span>
+        {s.endDate && <DateBadge date={s.endDate} finished={finished} label={t.sprints.end} />}
       </div>
-      <h3>{a.name}</h3>
+      <h3>{s.name}</h3>
       <span className="meta">
-        {formatRange(a.startDate, a.endDateTentative, t.activities.noPeriod)}
-        {days ? ` · ${t.activities.days(days)}` : ''}
+        {formatRange(s.startDate, s.endDate, t.sprints.noPeriod)}
+        {days ? ` · ${t.sprints.days(days)}` : ''}
       </span>
-      <div className="progress" aria-label={`${t.activities.progress}: ${a.stats.progress}%`}>
+      <div className="progress" aria-label={`${t.sprints.progress}: ${s.stats.progress}%`}>
         <div className="progress-head">
-          <span>{t.activities.tasksDone(a.stats.done, a.stats.total)}</span>
-          <strong>{a.stats.progress}%</strong>
+          <span>{t.sprints.tasksDone(s.stats.done, s.stats.total)}</span>
+          <strong>{s.stats.progress}%</strong>
         </div>
         <div className="progress-track">
-          <span style={{ width: `${a.stats.progress}%` }} />
+          <span style={{ width: `${s.stats.progress}%` }} />
         </div>
       </div>
-      <div className="activity-card-owner">
-        {a.owner ? (
+      <div className="sprint-card-owner">
+        {s.owner ? (
           <>
-            <Avatar user={a.owner} size={26} />
-            <span>{a.owner.name}</span>
+            <Avatar user={s.owner} size={26} />
+            <span>{s.owner.name}</span>
           </>
         ) : (
-          <span className="muted">{t.activities.noOwner}</span>
+          <span className="muted">{t.sprints.noOwner}</span>
         )}
+        <span className="sprint-card-members">
+          <AssigneeStack users={s.members} size={22} />
+        </span>
       </div>
     </Link>
   )
 }
 
-/** /activities — dashboard de Actividades agrupadas por momento (vencidas, en curso, próximas, completadas). */
-export function ActivitiesPage() {
+/** /sprints — dashboard de Sprints agrupados por momento (vencidos, en curso, próximos, completados). */
+export function SprintsPage() {
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(params.get('q') || '')
   const owner = params.get('owner') || ''
@@ -74,25 +77,25 @@ export function ActivitiesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q])
 
-  const activities = useActivities(filters)
-  const items = activities.data?.items
+  const sprints = useSprints(filters)
+  const items = sprints.data?.items
 
   // Responsables presentes en el listado (para el filtro, en memoria).
   const owners = useMemo(() => {
     const map = new Map()
-    for (const a of items || []) if (a.owner) map.set(a.owner.id, a.owner)
+    for (const s of items || []) if (s.owner) map.set(s.owner.id, s.owner)
     return [...map.values()].sort((x, y) => x.name.localeCompare(y.name))
   }, [items])
 
   const groups = useMemo(() => {
-    const g = Object.fromEntries(ACTIVITY_PHASES.map((p) => [p.id, []]))
-    for (const a of items || []) {
-      if (owner && a.owner?.id !== owner) continue
-      g[activityPhase(a)].push(a)
+    const g = Object.fromEntries(SPRINT_PHASES.map((p) => [p.id, []]))
+    for (const s of items || []) {
+      if (owner && s.owner?.id !== owner) continue
+      g[sprintPhase(s)].push(s)
     }
     // Lo más urgente primero: por fecha fin (sin fecha al final).
     for (const list of Object.values(g)) {
-      list.sort((x, y) => (x.endDateTentative || '9999').localeCompare(y.endDateTentative || '9999'))
+      list.sort((x, y) => (x.endDate || '9999').localeCompare(y.endDate || '9999'))
     }
     return g
   }, [items, owner])
@@ -100,26 +103,26 @@ export function ActivitiesPage() {
   const visibleTotal = Object.values(groups).reduce((n, l) => n + l.length, 0)
 
   let content
-  if (activities.isPending) {
+  if (sprints.isPending) {
     content = (
       <div className="mytasks-grid" role="status" aria-label={t.common.loading}>
-        {ACTIVITY_PHASES.map((p) => (
+        {SPRINT_PHASES.map((p) => (
           <Skeleton key={p.id} height={260} radius={24} />
         ))}
       </div>
     )
-  } else if (activities.isError) {
-    content = <ErrorState error={activities.error} onRetry={() => activities.refetch()} />
+  } else if (sprints.isError) {
+    content = <ErrorState error={sprints.error} onRetry={() => sprints.refetch()} />
   } else if (visibleTotal === 0) {
     content = (
       <EmptyState
-        icon={ListChecks}
+        icon={Timer}
         color="bg-yellow"
-        title={t.activities.emptyTitle}
-        body={t.activities.emptyBody}
+        title={t.sprints.emptyTitle}
+        body={t.sprints.emptyBody}
         action={
-          <Link className="btn btn-dark" to="/activities/new">
-            <Plus size={18} /> {t.activities.new}
+          <Link className="btn btn-dark" to="/sprints/new">
+            <Plus size={18} /> {t.sprints.new}
           </Link>
         }
       />
@@ -127,19 +130,19 @@ export function ActivitiesPage() {
   } else {
     content = (
       <div className="mytasks-grid">
-        {ACTIVITY_PHASES.map(({ id, color }) => (
+        {SPRINT_PHASES.map(({ id, color }) => (
           <section key={id} className="mytasks-group" aria-labelledby={`ph-${id}`}>
             <header className={`mytasks-head bg-${color}`}>
-              <h2 id={`ph-${id}`}>{t.activities.phases[id]}</h2>
+              <h2 id={`ph-${id}`}>{t.sprints.phases[id]}</h2>
               <span className="count">{groups[id].length}</span>
             </header>
             {groups[id].length === 0 ? (
-              <p className="muted mytasks-empty">{t.activities.phaseEmpty}</p>
+              <p className="muted mytasks-empty">{t.sprints.phaseEmpty}</p>
             ) : (
-              <ul className="activity-list">
-                {groups[id].map((a) => (
-                  <li key={a.id}>
-                    <ActivityCard a={a} />
+              <ul className="sprint-list">
+                {groups[id].map((s) => (
+                  <li key={s.id}>
+                    <SprintCard s={s} />
                   </li>
                 ))}
               </ul>
@@ -154,55 +157,55 @@ export function ActivitiesPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1>{t.activities.title}</h1>
-          <p className="muted">{t.activities.subtitle}</p>
-          {items && <p className="muted">{t.activities.total(visibleTotal)}</p>}
+          <h1>{t.sprints.title}</h1>
+          <p className="muted">{t.sprints.subtitle}</p>
+          {items && <p className="muted">{t.sprints.total(visibleTotal)}</p>}
         </div>
-        <div className="head-actions activities-head">
+        <div className="head-actions sprints-head">
           {items && (
             <div className="hero-counts">
-              {ACTIVITY_PHASES.map(({ id, color }) => {
+              {SPRINT_PHASES.map(({ id, color }) => {
                 const Icon = PHASE_ICON[id]
                 return (
                   <div key={id} className={`hero-count bg-${color}`}>
                     <Icon size={18} aria-hidden="true" />
                     <strong>{groups[id].length}</strong>
-                    <span>{t.activities.phases[id]}</span>
+                    <span>{t.sprints.phases[id]}</span>
                   </div>
                 )
               })}
             </div>
           )}
-          <Link className="btn btn-dark" to="/activities/new">
-            <Plus size={18} /> {t.activities.new}
+          <Link className="btn btn-dark" to="/sprints/new">
+            <Plus size={18} /> {t.sprints.new}
           </Link>
         </div>
       </div>
 
       <div className="toolbar">
-        <div className="segmented" role="group" aria-label={t.activities.mine}>
+        <div className="segmented" role="group" aria-label={t.sprints.mine}>
           <button type="button" aria-pressed={!filters.mine} onClick={() => setParam('mine', '')}>
-            {t.activities.all}
+            {t.sprints.all}
           </button>
           <button type="button" aria-pressed={Boolean(filters.mine)} onClick={() => setParam('mine', '1')}>
-            {t.activities.mine}
+            {t.sprints.mine}
           </button>
         </div>
         <input
           className="input"
           type="search"
-          aria-label={t.activities.search}
-          placeholder={t.activities.search}
+          aria-label={t.sprints.search}
+          placeholder={t.sprints.search}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         <select
           className="select"
-          aria-label={t.activities.ownerFilter}
+          aria-label={t.sprints.ownerFilter}
           value={owner}
           onChange={(e) => setParam('owner', e.target.value)}
         >
-          <option value="">{t.activities.anyOwner}</option>
+          <option value="">{t.sprints.anyOwner}</option>
           {owners.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
@@ -215,7 +218,7 @@ export function ActivitiesPage() {
             checked={Boolean(filters.includeArchived)}
             onChange={(e) => setParam('includeArchived', e.target.checked ? '1' : '')}
           />
-          {t.activities.showArchived}
+          {t.sprints.showArchived}
         </label>
       </div>
 

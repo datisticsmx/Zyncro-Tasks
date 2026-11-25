@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet } from 'react-router'
-import { CheckSquare, ChevronDown, FolderKanban, ListChecks, LogOut, StickyNote, UserCog, UserRound, UsersRound } from 'lucide-react'
+import { CheckSquare, ChevronDown, FolderKanban, LogOut, StickyNote, Timer, UserCog, UserRound, UsersRound } from 'lucide-react'
 import { useLogout, useMe } from '../lib/session'
 import { Avatar } from './Avatar'
 import { GlobalSearch } from './GlobalSearch'
@@ -37,7 +37,7 @@ function Rail({ isAdmin }) {
       <nav>
         <RailLink to="/" end icon={CheckSquare} label={t.nav.myTasks} />
         <RailLink to="/projects" icon={FolderKanban} label={t.nav.projects} />
-        <RailLink to="/activities" icon={ListChecks} label={t.nav.activities} />
+        <RailLink to="/sprints" icon={Timer} label={t.nav.sprints} />
         <RailLink to="/notes" icon={StickyNote} label={t.nav.notes} />
         <RailLink to="/people" icon={UsersRound} label={t.nav.people} />
         {isAdmin && <RailLink to="/admin/users" icon={UserCog} label={t.nav.users} />}

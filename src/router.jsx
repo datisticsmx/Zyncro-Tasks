@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router'
+import { Navigate, createBrowserRouter } from 'react-router'
 import { PublicOnly, RequireAdmin, RequireAuth } from './components/Guards'
 import { AppLayout } from './components/Layout'
 import { NotFound } from './components/States'
@@ -10,9 +10,9 @@ import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { ProjectPage } from './pages/projects/ProjectPage'
 import { ProjectFormPage } from './pages/projects/ProjectFormPage'
 import { ProjectWorkspace } from './pages/projects/ProjectWorkspace'
-import { ActivitiesPage } from './pages/activities/ActivitiesPage'
-import { ActivityPage } from './pages/activities/ActivityPage'
-import { ActivityFormPage } from './pages/activities/ActivityFormPage'
+import { SprintsPage } from './pages/sprints/SprintsPage'
+import { SprintPage } from './pages/sprints/SprintPage'
+import { SprintFormPage } from './pages/sprints/SprintFormPage'
 import { PeoplePage } from './pages/PeoplePage'
 import { NotesPage } from './pages/NotesPage'
 import { ProfilePage } from './pages/ProfilePage'
@@ -46,10 +46,18 @@ export const router = createBrowserRouter([
           { path: '/projects/:key/list', element: <ProjectWorkspace view="list" /> },
           { path: '/projects/:key/checklist', element: <ProjectWorkspace view="checklist" /> },
           { path: '/projects/:key/tasks/:number', element: <ProjectWorkspace /> },
-          { path: '/activities', element: <ActivitiesPage /> },
-          { path: '/activities/new', caseSensitive: true, element: <ActivityFormPage /> },
-          { path: '/activities/:key', element: <ActivityPage /> },
-          { path: '/activities/:key/settings', element: <ActivityFormPage /> },
+          { path: '/sprints', element: <SprintsPage /> },
+          { path: '/sprints/new', caseSensitive: true, element: <SprintFormPage /> },
+          {
+            path: '/sprints/:key',
+            element: <SprintPage />,
+            // Sin elemento propio: SprintPage abre el panel de la actividad
+            // sobre sí misma (useMatch) sin desmontarse.
+            children: [{ path: 'tasks/:number', element: null }],
+          },
+          { path: '/sprints/:key/settings', element: <SprintFormPage /> },
+          // La pantalla se llamaba "Actividades".
+          { path: '/activities/*', element: <Navigate to="/sprints" replace /> },
           { path: '/notes', element: <NotesPage /> },
           { path: '/people', element: <PeoplePage /> },
           { path: '/profile', element: <ProfilePage /> },

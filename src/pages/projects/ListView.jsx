@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { ArrowDown, ArrowUp, ListChecks } from 'lucide-react'
 import { PRIORITIES, STATUSES, useCreateTask, useTaskList, useToggleDone } from '../../lib/tasks'
 import { useTaskGroups } from '../../lib/taskGroups'
+import { trackerOf } from '../../lib/tracker'
 import { TASK_STATUS_COLOR } from '../../lib/ui'
 import { AssigneeStack, DueBadge, PriorityPill } from '../../components/TaskCard'
 import { TaskDoneCheck } from '../../components/TaskCheck'
@@ -25,22 +26,28 @@ const COLUMNS = [
   { id: 'due_date', label: t.tasks.colDue, sortable: true },
 ]
 
-/** /projects/:key/list — RF-VIEW-02 con filtros y orden reflejados en la URL. */
+/**
+ * /projects/:key/list — RF-VIEW-02 con filtros y orden reflejados en la URL.
+ * También la lista de un sprint (kind = 'sprint'), que no tiene grupos.
+ */
 export function ListView({ project }) {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
   const toast = useToast()
   const [q, setQ] = useState(params.get('q') || '')
-  const groups = useTaskGroups(project.id)
-  const toggle = useToggleDone(project.key, { onRollback: () => toast.error(t.tasks.toggleFailed) })
+  const { kind, route } = trackerOf(project)
+  const hasGroups = kind === 'project'
+  const groups = useTaskGroups(hasGroups ? project.id : null)
+  const columns = hasGroups ? COLUMNS : COLUMNS.filter((c) => c.id !== 'group')
+  const toggle = useToggleDone(project.key, { onRollback: () => toast.error(t.tasks.toggleFailed), kind })
   const toggleDone = (task, done) => {
     toggle.mutate({ task, done })
     toast.success(done ? t.tasks.doneToast(task.ref) : t.tasks.undoneToast(task.ref, t.taskStatus.todo))
   }
 
   // Alta desde la lista: nace en "Por hacer"; el resto se edita en el panel.
-  const create = useCreateTask(project.id, project.key)
+  const create = useCreateTask(project.id, project.key, kind)
   async function createTask(body) {
     try {
       const { task } = await create.mutateAsync(body)
@@ -56,7 +63,7 @@ export function ListView({ project }) {
     status: params.get('status') || '',
     priority: params.get('priority') || '',
     assignee: params.get('assignee') || '',
-    group: params.get('group') || '',
+    group: hasGroups ? params.get('group') || '' : '',
     overdue: params.get('overdue') || '',
     q: params.get('q') || '',
     sort: params.get('sort') || 'due_date',
@@ -90,10 +97,10 @@ export function ListView({ project }) {
     setParams(next, { replace: true })
   }
 
-  const list = useTaskList(project.id, filters)
+  const list = useTaskList(project.id, filters, kind)
   const pages = list.data ? Math.max(1, Math.ceil(list.data.total / PAGE_SIZE)) : 1
   const open = (task) =>
-    navigate(`/projects/${project.key}/tasks/${task.number}`, {
+    navigate(`${route}/${project.key}/tasks/${task.number}`, {
       state: { from: location.pathname + location.search, view: 'list' },
     })
 
@@ -109,7 +116,7 @@ export function ListView({ project }) {
           <table className="table task-table">
             <thead>
               <tr>
-                {COLUMNS.map((c) => (
+                {columns.map((c) => (
                   <th
                     key={c.id}
                     scope="col"
@@ -159,9 +166,11 @@ export function ListView({ project }) {
                   <td>
                     <PriorityPill priority={task.priority} />
                   </td>
-                  <td>
-                    {task.groupName ? <span className="pill">{task.groupName}</span> : <span className="muted">—</span>}
-                  </td>
+                  {hasGroups && (
+                    <td>
+                      {task.groupName ? <span className="pill">{task.groupName}</span> : <span className="muted">—</span>}
+                    </td>
+                  )}
                   <td>
                     <AssigneeStack users={task.assignees} />
                     {task.assignees.length === 0 && <span className="muted">—</span>}
@@ -231,20 +240,22 @@ export function ListView({ project }) {
           <option value="me">{t.tasks.assignedToMe}</option>
           <option value="none">{t.tasks.unassigned}</option>
         </select>
-        <select
-          className="select"
-          aria-label={t.tasks.colGroup}
-          value={filters.group}
-          onChange={(e) => setParam('group', e.target.value)}
-        >
-          <option value="">{t.tasks.allGroups}</option>
-          <option value="none">{t.tasks.noGroup}</option>
-          {(groups.data || []).map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
+        {hasGroups && (
+          <select
+            className="select"
+            aria-label={t.tasks.colGroup}
+            value={filters.group}
+            onChange={(e) => setParam('group', e.target.value)}
+          >
+            <option value="">{t.tasks.allGroups}</option>
+            <option value="none">{t.tasks.noGroup}</option>
+            {(groups.data || []).map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        )}
         <label className="check">
           <input
             type="checkbox"

@@ -14,6 +14,7 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from '@dnd-kit/utilities'
 import { MoreHorizontal } from 'lucide-react'
 import { STATUSES, useBoard, useCreateTask, useMoveTask, useToggleDone } from '../../lib/tasks'
+import { trackerOf } from '../../lib/tracker'
 import { TASK_STATUS_COLOR } from '../../lib/ui'
 import { TaskCardBody } from '../../components/TaskCard'
 import { QuickAddTask } from '../../components/QuickAddTask'
@@ -127,15 +128,19 @@ function Column({ status, ids, byId, onOpen, onMove, onCreate, onToggle }) {
   )
 }
 
-/** /projects/:key/board — RF-VIEW-01 (CA-08). */
+/**
+ * /projects/:key/board — RF-VIEW-01 (CA-08). También el tablero de un sprint:
+ * `project` puede ser un sprint (kind = 'sprint'), con la misma forma.
+ */
 export function BoardView({ project }) {
   const navigate = useNavigate()
   const location = useLocation()
   const toast = useToast()
-  const board = useBoard(project.id)
-  const move = useMoveTask(project.id, project.key, { onRollback: () => toast.error(t.tasks.moveFailed) })
-  const create = useCreateTask(project.id, project.key)
-  const toggle = useToggleDone(project.key, { onRollback: () => toast.error(t.tasks.toggleFailed) })
+  const { kind, route } = trackerOf(project)
+  const board = useBoard(project.id, kind)
+  const move = useMoveTask(project.id, project.key, { onRollback: () => toast.error(t.tasks.moveFailed), kind })
+  const create = useCreateTask(project.id, project.key, kind)
+  const toggle = useToggleDone(project.key, { onRollback: () => toast.error(t.tasks.toggleFailed), kind })
 
   // Columnas durante el arrastre; fuera de él se derivan de la caché.
   const [dragCols, setDragCols] = useState(null)
@@ -153,7 +158,7 @@ export function BoardView({ project }) {
   )
 
   const openTask = (task) =>
-    navigate(`/projects/${project.key}/tasks/${task.number}`, { state: { from: location.pathname + location.search } })
+    navigate(`${route}/${project.key}/tasks/${task.number}`, { state: { from: location.pathname + location.search } })
 
   /** Casilla de la tarjeta: Hecho ⇄ Por hacer sin abrir el panel. */
   function toggleDone(task, done) {

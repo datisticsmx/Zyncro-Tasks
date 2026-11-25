@@ -1,4 +1,5 @@
 import { CalendarClock, CornerDownRight, Layers } from 'lucide-react'
+import { taskContainer } from '../lib/tracker'
 import { Avatar } from './Avatar'
 import { TaskDoneCheck } from './TaskCheck'
 import { PRIORITY_COLOR, dueTone, formatDate } from '../lib/ui'
@@ -23,6 +24,11 @@ export function DateBadge({ date, finished = false, label = t.tasks.due }) {
 
 export function DueBadge({ task }) {
   return <DateBadge date={task.dueDate} finished={task.status === 'done'} />
+}
+
+/** Etiqueta del origen de una tarea: Proyecto o Sprint (en vistas que los mezclan). */
+export function KindTag({ kind }) {
+  return <span className={`pill kind-tag kind-${kind}`}>{t.kind[kind]}</span>
 }
 
 export function PriorityPill({ priority }) {
@@ -56,11 +62,13 @@ export function AssigneeStack({ users, size = 26, max = 3 }) {
  */
 export function TaskCardBody({ task, showProject = false, onToggle }) {
   const done = task.status === 'done'
+  const container = showProject ? taskContainer(task) : null
   return (
     <>
       <div className="task-card-top">
         {onToggle && <TaskDoneCheck task={task} onToggle={onToggle} size={18} />}
         <span className="pill dark ref">{task.ref}</span>
+        {container && <KindTag kind={container.kind} />}
         <PriorityPill priority={task.priority} />
       </div>
       <p className={`task-card-title${done ? ' is-done' : ''}`}>{task.title}</p>
@@ -69,9 +77,9 @@ export function TaskCardBody({ task, showProject = false, onToggle }) {
           <Layers size={12} aria-hidden="true" /> {task.groupName}
         </span>
       )}
-      {showProject && (
+      {container && (
         <span className="task-card-project">
-          <CornerDownRight size={12} aria-hidden="true" /> {task.projectName}
+          <CornerDownRight size={12} aria-hidden="true" /> {container.name}
         </span>
       )}
       <div className="task-card-foot">

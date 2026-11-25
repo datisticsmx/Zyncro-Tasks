@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { MessageSquare, Pencil, Trash2 } from 'lucide-react'
 import { api } from '../lib/api'
 import { collabKeys, useComments } from '../lib/collab'
+import { trackerOf } from '../lib/tracker'
 import { Avatar } from './Avatar'
 import { Markdown } from './Markdown'
 import { EmptyState, ErrorState, SkeletonRows } from './States'
@@ -20,7 +21,7 @@ function CommentItem({ comment, onChanged }) {
   async function save() {
     setBusy(true)
     try {
-      await api.patch(`/comments/${comment.id}`, { body: draft })
+      await api.patch(`${trackerOf(comment).commentApi}/${comment.id}`, { body: draft })
       setEditing(false)
       onChanged()
     } catch (err) {
@@ -33,7 +34,7 @@ function CommentItem({ comment, onChanged }) {
   async function remove() {
     if (!window.confirm(t.comments.confirmDelete)) return
     try {
-      await api.del(`/comments/${comment.id}`)
+      await api.del(`${trackerOf(comment).commentApi}/${comment.id}`)
       toast.success(t.comments.deleted)
       onChanged()
     } catch (err) {

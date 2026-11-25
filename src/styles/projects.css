@@ -779,3 +779,63 @@ a.person-github:hover {
   font-size: 11px;
   font-weight: 600;
 }
+
+/* ── Vista "Columnas" de /projects: tablero por estatus ── */
+.project-columns {
+  grid-auto-columns: minmax(250px, 1fr);
+}
+.pcol-card {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 18px;
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: box-shadow 0.15s ease;
+}
+.pcol-card.movable {
+  cursor: grab;
+}
+.pcol-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+.pcol-card.dragging {
+  opacity: 0.35;
+}
+.pcol-card.overlay {
+  cursor: grabbing;
+  box-shadow: var(--shadow-lg);
+  transform: rotate(2deg);
+}
+.pcol-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 32px;
+}
+.pcol-card-name {
+  font-size: 15px;
+  line-height: 1.25;
+}
+.pcol-card .meta {
+  font-size: 12px;
+  opacity: 0.75;
+}
+.pcol-card .card-menu-btn {
+  color: inherit;
+}
+.pcol-card.on-dark {
+  color: var(--text-on-dark);
+}
+.pcol-card.on-dark .pill.dark {
+  background: var(--text-on-dark);
+  color: var(--ink);
+}
+.pcol-card.on-dark .progress-track {
+  background: rgba(255, 255, 255, 0.25);
+}
+.pcol-card.on-dark .progress-track span {
+  background: var(--text-on-dark);
+}

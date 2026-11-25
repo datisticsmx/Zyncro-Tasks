@@ -1,6 +1,6 @@
-/* Actividades: dashboard, tarjetas y formulario. */
+/* Sprints: dashboard, tarjetas, formulario y detalle. */
 
-.activities-head {
+.sprints-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -8,7 +8,7 @@
   gap: 14px;
 }
 
-.activity-list {
+.sprint-list {
   display: grid;
   gap: 10px;
   margin: 0;
@@ -16,7 +16,7 @@
   list-style: none;
 }
 
-.activity-card {
+.sprint-card {
   display: grid;
   gap: 6px;
   padding: 16px;
@@ -29,33 +29,33 @@
     transform 0.15s ease,
     box-shadow 0.15s ease;
 }
-.activity-card:hover {
+.sprint-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
-.activity-card h3 {
+.sprint-card h3 {
   color: inherit;
   font-size: 17px;
   line-height: 1.25;
 }
-.activity-card .meta {
+.sprint-card .meta {
   font-size: 12px;
   color: var(--text-2);
 }
-.activity-card .progress {
+.sprint-card .progress {
   margin-top: 4px;
 }
-.activity-card.is-archived {
+.sprint-card.is-archived {
   opacity: 0.7;
 }
-.activity-card-top {
+.sprint-card-top {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
 }
-.activity-card-owner {
+.sprint-card-owner {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -63,15 +63,30 @@
   font-size: 13px;
   font-weight: 500;
 }
+.sprint-card-members {
+  margin-left: auto;
+}
+
+/* Etiqueta de origen (Proyecto / Sprint) en vistas que los mezclan, p. ej. Mis tareas. */
+.pill.kind-tag {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.pill.kind-project {
+  background: var(--cyan);
+}
+.pill.kind-sprint {
+  background: var(--lilac);
+}
 
 /* Formulario: lista de tareas iniciales */
-.activity-task-row {
+.sprint-task-row {
   display: grid;
   grid-template-columns: 28px 1fr auto;
   align-items: center;
   gap: 8px;
 }
-.activity-task-row .num {
+.sprint-task-row .num {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-2);
@@ -79,7 +94,7 @@
 }
 
 /* Detalle */
-.activity-meta-row {
+.sprint-meta-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -88,7 +103,7 @@
   color: var(--text-2);
   font-size: 14px;
 }
-.activity-meta-row .who {
+.sprint-meta-row .who {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -97,7 +112,7 @@
 }
 
 @media (max-width: 720px) {
-  .activities-head {
+  .sprints-head {
     justify-content: stretch;
     width: 100%;
   }

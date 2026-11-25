@@ -35,6 +35,20 @@ function describe(item, users, inTask) {
   switch (item.action) {
     case 'project.created':
       return <>creó el proyecto</>
+    case 'sprint.created':
+      return <>creó el sprint</>
+    case 'sprint.updated':
+      return <>actualizó el sprint ({changes(p.changes)})</>
+    case 'sprint.owner_changed':
+      return p.to_user_id ? (
+        <>asignó como responsable a {who(p.to_user_id)}</>
+      ) : (
+        <>quitó al responsable {who(p.from_user_id)}</>
+      )
+    case 'sprint.member_added':
+      return <>agregó a {who(p.user_id)} como participante</>
+    case 'sprint.member_removed':
+      return <>quitó a {who(p.user_id)} de los participantes</>
     case 'project.updated':
       return <>actualizó el proyecto ({changes(p.changes)})</>
     case 'project.member_added':
@@ -74,6 +88,7 @@ function describe(item, users, inTask) {
         <>
           desasignó a {who(p.user_id)}{ref ? <> de {ref}</> : null}
           {p.reason === 'lost_project_access' ? ' (perdió acceso al proyecto)' : ''}
+          {p.reason === 'lost_sprint_access' ? ' (dejó de participar en el sprint)' : ''}
         </>
       )
     case 'task.deleted':
@@ -91,7 +106,7 @@ function describe(item, users, inTask) {
   }
 }
 
-/** Bitácora de un proyecto (incluye sus tareas) o de una tarea. */
+/** Bitácora de un proyecto o sprint (incluye sus tareas) o de una tarea. */
 export function ActivityFeed({ scope, id }) {
   const feed = useActivity(scope, id)
   if (feed.isPending) return <SkeletonRows rows={4} height={44} />
@@ -106,7 +121,7 @@ export function ActivityFeed({ scope, id }) {
           <Avatar user={item.actor} size={30} />
           <div>
             <p>
-              <strong>{item.actor.name}</strong> {describe(item, feed.data.users, scope === 'tasks')}
+              <strong>{item.actor.name}</strong> {describe(item, feed.data.users, scope === 'tasks' || scope === 'sprint-tasks')}
             </p>
             <time className="muted" dateTime={item.createdAt}>
               {DATETIME.format(new Date(item.createdAt))}
